@@ -1,0 +1,59 @@
+{
+  "name": "CheckIn",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "nervous_system": {
+      "type": "string",
+      "enum": [
+        "regulado",
+        "activado",
+        "colapsado"
+      ]
+    },
+    "emotion": {
+      "type": "string",
+      "enum": [
+        "ansiedad",
+        "calma",
+        "frustracion",
+        "apatia",
+        "motivacion"
+      ]
+    },
+    "body": {
+      "type": "string",
+      "enum": [
+        "tension",
+        "energia",
+        "respiracion",
+        "digestion"
+      ]
+    },
+    "mind": {
+      "type": "string",
+      "enum": [
+        "clara",
+        "dispersa",
+        "rumiando",
+        "enfocada"
+      ]
+    },
+    "diagnosis": {
+      "type": "string"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "user_email",
+    "nervous_system"
+  ]
+}

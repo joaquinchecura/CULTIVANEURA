@@ -1,0 +1,81 @@
+{
+  "name": "Intervention",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "respiracion",
+        "movimiento",
+        "mentalidad",
+        "recuperacion",
+        "nutricion"
+      ]
+    },
+    "target_state": {
+      "type": "string",
+      "enum": [
+        "regulado",
+        "activado",
+        "colapsado",
+        "todos"
+      ]
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "instructions": {
+      "type": "string"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "audio_url": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "type",
+    "target_state"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_active": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

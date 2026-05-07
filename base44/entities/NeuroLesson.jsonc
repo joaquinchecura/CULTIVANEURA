@@ -1,0 +1,75 @@
+{
+  "name": "NeuroLesson",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "sistema_nervioso",
+        "emociones",
+        "habitos",
+        "recuperacion",
+        "rendimiento",
+        "respiracion"
+      ]
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "cover_image_url": {
+      "type": "string"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_published": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

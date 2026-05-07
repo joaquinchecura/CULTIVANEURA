@@ -1,0 +1,30 @@
+{
+  "name": "UserProgress",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "lesson_id": {
+      "type": "string"
+    },
+    "intervention_id": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "lesson",
+        "intervention"
+      ]
+    }
+  },
+  "required": [
+    "user_email",
+    "type"
+  ]
+}
