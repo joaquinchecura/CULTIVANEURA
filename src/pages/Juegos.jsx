@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wind, Brain, Zap, Grid2X2, Anchor, Snowflake, Heart, Flower2, Calculator, BookHeart } from 'lucide-react';
+import { Wind, Brain, Zap, Grid2X2, Anchor, Snowflake, Heart, Flower2, Calculator, BookHeart, Hash, ShieldOff, RotateCcw, ScanEye, Gauge } from 'lucide-react';
 import BreathingGame from '@/components/games/BreathingGame';
 import FocusGame from '@/components/games/FocusGame';
 import ReactionGame from '@/components/games/ReactionGame';
@@ -11,6 +11,11 @@ import GratitudeGame from '@/components/games/GratitudeGame';
 import HRVGame from '@/components/games/HRVGame';
 import MindfulnessGame from '@/components/games/MindfulnessGame';
 import StressInoculationGame from '@/components/games/StressInoculationGame';
+import NumberSequenceGame from '@/components/games/NumberSequenceGame';
+import InhibitionGame from '@/components/games/InhibitionGame';
+import MentalRotationGame from '@/components/games/MentalRotationGame';
+import SustainedAttentionGame from '@/components/games/SustainedAttentionGame';
+import ProcessingSpeedGame from '@/components/games/ProcessingSpeedGame';
 
 const games = [
   {
@@ -113,6 +118,56 @@ const games = [
     border: 'border-orange-200',
     tag: 'Estrés',
   },
+  {
+    id: 'numbersequence',
+    title: 'Secuencia Numérica',
+    description: 'Memoriza y reproducí secuencias de dígitos',
+    icon: Hash,
+    color: 'text-cyan-600',
+    bg: 'bg-cyan-50',
+    border: 'border-cyan-200',
+    tag: 'Memoria',
+  },
+  {
+    id: 'inhibition',
+    title: 'Control Inhibitorio',
+    description: 'Respondé solo al estímulo correcto, ignorá los demás',
+    icon: ShieldOff,
+    color: 'text-green-600',
+    bg: 'bg-green-50',
+    border: 'border-green-200',
+    tag: 'Inhibición',
+  },
+  {
+    id: 'mentalrotation',
+    title: 'Rotación Mental',
+    description: 'Identificá figuras rotadas para entrenar la cognición espacial',
+    icon: RotateCcw,
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    tag: 'Espacial',
+  },
+  {
+    id: 'sustainedattention',
+    title: 'Conteo de Estímulos',
+    description: 'Contá cuántas veces aparece el símbolo objetivo',
+    icon: ScanEye,
+    color: 'text-orange-500',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    tag: 'Atención',
+  },
+  {
+    id: 'processingspeed',
+    title: 'Velocidad de Procesamiento',
+    description: 'Clasificá símbolos lo más rápido posible',
+    icon: Gauge,
+    color: 'text-pink-600',
+    bg: 'bg-pink-50',
+    border: 'border-pink-200',
+    tag: 'Velocidad',
+  },
 ];
 
 export default function Juegos() {
@@ -129,13 +184,13 @@ export default function Juegos() {
             <p className="text-sm text-muted-foreground mt-1">Entrenás tu sistema nervioso jugando</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {games.map((g, i) => (
               <motion.button
                 key={g.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
+                transition={{ delay: i * 0.04 }}
                 onClick={() => setActiveGame(g.id)}
                 className={`w-full text-left ${g.bg} border ${g.border} rounded-2xl p-4 hover:shadow-md transition-shadow`}
               >
@@ -183,6 +238,11 @@ export default function Juegos() {
           {activeGame === 'hrv' && <HRVGame />}
           {activeGame === 'mindfulness' && <MindfulnessGame />}
           {activeGame === 'stress' && <StressInoculationGame />}
+          {activeGame === 'numbersequence' && <NumberSequenceGame />}
+          {activeGame === 'inhibition' && <InhibitionGame />}
+          {activeGame === 'mentalrotation' && <MentalRotationGame />}
+          {activeGame === 'sustainedattention' && <SustainedAttentionGame />}
+          {activeGame === 'processingspeed' && <ProcessingSpeedGame />}
         </div>
       )}
     </div>
