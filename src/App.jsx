@@ -7,7 +7,6 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { SignedIn, SignedOut, SignIn } from '@clerk/clerk-react';
 import Layout from './components/Layout';
 
-// Pages
 import Home from './pages/Home';
 import Estado from './pages/Estado';
 import Regular from './pages/Regular';
@@ -16,6 +15,8 @@ import LessonDetail from './pages/LessonDetail';
 import Progreso from './pages/Progreso';
 import Admin from './pages/Admin';
 import Juegos from './pages/Juegos';
+import RuedaEmocional from './pages/RuedaEmocional';
+import RuedaEmocionalDashboard from './pages/RuedaEmocionalDashboard';
 
 const LoginPage = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -25,9 +26,7 @@ const LoginPage = () => (
 
 const AuthenticatedApp = () => (
   <>
-    <SignedOut>
-      <LoginPage />
-    </SignedOut>
+    <SignedOut><LoginPage /></SignedOut>
     <SignedIn>
       <Routes>
         <Route element={<Layout />}>
@@ -39,6 +38,8 @@ const AuthenticatedApp = () => (
           <Route path="/progreso" element={<Progreso />} />
           <Route path="/juegos" element={<Juegos />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/rueda-emocional" element={<RuedaEmocional />} />
+          <Route path="/rueda-dashboard" element={<RuedaEmocionalDashboard />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
