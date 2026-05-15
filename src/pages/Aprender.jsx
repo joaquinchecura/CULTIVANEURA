@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import LessonCard from '@/components/neuro/LessonCard';
 import NeurocienciaContent from '@/components/neuro/NeurocienciaContent';
