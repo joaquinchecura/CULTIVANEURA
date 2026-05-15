@@ -6,20 +6,14 @@ import NeuroplasticidadSection from '@/components/neuro/NeuroplasticidadSection'
 import { cn } from '@/lib/utils';
 
 // ─── Tab definitions ───────────────────────────────────────────────────────────
-// The first block are dynamic (backend) tabs; the second block are static tabs.
-const DYNAMIC_CATEGORIES = [
-  { value: 'todos',         label: 'Todos' },
+
+const STATIC_CATEGORIES = [
   { value: 'sistema_nervioso', label: 'SN' },
   { value: 'emociones',     label: 'Emociones' },
   { value: 'habitos',       label: 'Hábitos' },
   { value: 'recuperacion',  label: 'Recuperación' },
-  { value: 'rendimiento',   label: 'Rendimiento' },
-  { value: 'respiracion',   label: 'Respiración' },
-];
-
-const STATIC_CATEGORIES = [
-  { value: 'neurociencia',     label: '🧠 Neurociencia' },
-  { value: 'neuroplasticidad', label: '⚡ Ejercicio & Cerebro' },
+  { value: 'neurociencia',     label: 'Neurociencia' },
+  { value: 'neuroplasticidad', label: 'Ejercicio & Cerebro' },
 ];
 
 const ALL_CATEGORIES = [...DYNAMIC_CATEGORIES, ...STATIC_CATEGORIES];

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import CheckInWizard from '@/components/neuro/CheckInWizard';
 import DiagnosisCard from '@/components/neuro/DiagnosisCard';
