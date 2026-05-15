@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LessonCard from '@/components/neuro/LessonCard';
+import SistemanerviosoSection from '@/components/neuro/Sistemanerviososection';
+import EmocionesSection from '@/components/neuro/Emocionessection';
+import HabitosSecion from '@/components/neuro/HabitosSection';
+import RecuperacionSection from '@/components/neuro/RecuperacionSection';
 import NeurocienciaContent from '@/components/neuro/NeurocienciaContent';
 import NeuroplasticidadSection from '@/components/neuro/NeuroplasticidadSection';
 import { cn } from '@/lib/utils';
@@ -8,12 +12,12 @@ import { cn } from '@/lib/utils';
 // ─── Tab definitions ───────────────────────────────────────────────────────────
 
 const STATIC_CATEGORIES = [
-  { value: 'sistema_nervioso', label: 'SN' },
+  { value: 'sistema_nervioso', label: 'Sistema Nervioso' },
   { value: 'emociones',     label: 'Emociones' },
   { value: 'habitos',       label: 'Hábitos' },
   { value: 'recuperacion',  label: 'Recuperación' },
   { value: 'neurociencia',     label: 'Neurociencia' },
-  { value: 'neuroplasticidad', label: 'Ejercicio & Cerebro' },
+  { value: 'neuroplasticidad', label: 'Ejercicio y Cerebro' },
 ];
 
 const ALL_CATEGORIES = [...DYNAMIC_CATEGORIES, ...STATIC_CATEGORIES];
@@ -22,29 +26,6 @@ const ALL_CATEGORIES = [...DYNAMIC_CATEGORIES, ...STATIC_CATEGORIES];
 function SkeletonCard() {
   return (
     <div className="bg-muted rounded-2xl h-52 animate-pulse" />
-  );
-}
-
-// ─── Empty state ───────────────────────────────────────────────────────────────
-function EmptyState() {
-  return (
-    <div className="text-center py-16">
-      <p className="text-muted-foreground text-sm">No hay lecciones publicadas aún</p>
-      <p className="text-xs text-muted-foreground mt-1">El admin puede crear contenido desde el panel</p>
-    </div>
-  );
-}
-
-// ─── Section header badge ──────────────────────────────────────────────────────
-// Shown above static sections to contextualise them as "built-in" content.
-function StaticBadge({ label }) {
-  return (
-    <div
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-4"
-      style={{ background: '#264653', color: '#E9C46A', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}
-    >
-      <span>{label}</span>
-    </div>
   );
 }
 
