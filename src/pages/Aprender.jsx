@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 import SistemaNerviosoSection  from '@/components/neuro/SistemaNerviosoSection';
 import EmocionesSection        from '@/components/neuro/EmocionesSection';
-import HabitosSection          from '@/components/neuro/Habitossection';
+import HabitosSection          from '@/components/neuro/HabitosSection';
 import RecuperacionSection     from '@/components/neuro/RecuperacionSection';
 import RendimientoSection      from '@/components/neuro/RendimientoSection';
 import RespiracionSection      from '@/components/neuro/RespiracionSection';
