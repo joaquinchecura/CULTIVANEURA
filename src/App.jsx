@@ -7,15 +7,19 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { SignedIn, SignedOut, SignIn } from '@clerk/clerk-react';
 import Layout from './components/Layout';
 
-import Home from './pages/Home';
-import Estado from './pages/Estado';
-import Regular from './pages/Regular';
-import Aprender from './pages/Aprender';
-import LessonDetail from './pages/LessonDetail';
-import Progreso from './pages/Progreso';
-import Juegos from './pages/Juegos';
-import RuedaEmocional from './pages/RuedaEmocional';
+import Home                    from './pages/Home';
+import Estado                  from './pages/Estado';
+import Regular                 from './pages/Regular';
+import Aprender                from './pages/Aprender';
+import Progreso                from './pages/Progreso';
+import Juegos                  from './pages/Juegos';
+import RuedaEmocional          from './pages/RuedaEmocional';
 import RuedaEmocionalDashboard from './pages/RuedaEmocionalDashboard';
+
+// ─── Note: LessonDetail removed — Aprender is now fully static (no backend lessons)
+// ─── Note: Admin removed — import was missing. Re-add when the page exists:
+//     import Admin from './pages/Admin';
+//     <Route path="/admin" element={<Admin />} />
 
 const LoginPage = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -29,14 +33,12 @@ const AuthenticatedApp = () => (
     <SignedIn>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/estado" element={<Estado />} />
-          <Route path="/regular" element={<Regular />} />
-          <Route path="/aprender" element={<Aprender />} />
-          <Route path="/aprender/:id" element={<LessonDetail />} />
-          <Route path="/progreso" element={<Progreso />} />
-          <Route path="/juegos" element={<Juegos />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/"                element={<Home />} />
+          <Route path="/estado"          element={<Estado />} />
+          <Route path="/regular"         element={<Regular />} />
+          <Route path="/aprender"        element={<Aprender />} />
+          <Route path="/progreso"        element={<Progreso />} />
+          <Route path="/juegos"          element={<Juegos />} />
           <Route path="/rueda-emocional" element={<RuedaEmocional />} />
           <Route path="/rueda-dashboard" element={<RuedaEmocionalDashboard />} />
         </Route>
@@ -56,7 +58,7 @@ function App() {
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;
