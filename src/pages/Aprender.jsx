@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import SistemaNerviosoSection  from '@/components/neuro/SistemanerviosoSection';
+import SistemaNerviosoSection  from '@/components/neuro/SistemaNerviosoSection';
 import EmocionesSection        from '@/components/neuro/EmocionesSection';
 import HabitosSection          from '@/components/neuro/Habitossection';
 import RecuperacionSection     from '@/components/neuro/RecuperacionSection';
