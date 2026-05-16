@@ -13,7 +13,6 @@ import Regular from './pages/Regular';
 import Aprender from './pages/Aprender';
 import LessonDetail from './pages/LessonDetail';
 import Progreso from './pages/Progreso';
-import Admin from './pages/Admin';
 import Juegos from './pages/Juegos';
 import RuedaEmocional from './pages/RuedaEmocional';
 import RuedaEmocionalDashboard from './pages/RuedaEmocionalDashboard';
