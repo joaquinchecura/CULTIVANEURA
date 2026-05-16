@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import SistemaNerviosoSection  from '@/components/neuro/SistemaNerviosoSection';
+import SistemaNerviosoSection  from '@/components/neuro/SistemanerviosoSection';
 import EmocionesSection        from '@/components/neuro/EmocionesSection';
-import HabitosSection          from '@/components/neuro/HabitosSection';
+import HabitosSection          from '@/components/neuro/Habitossection';
 import RecuperacionSection     from '@/components/neuro/RecuperacionSection';
 import RendimientoSection      from '@/components/neuro/RendimientoSection';
 import RespiracionSection      from '@/components/neuro/RespiracionSection';
@@ -20,8 +20,8 @@ const TABS = [
   { value: 'habitos',          label: '🔄 Hábitos',         Component: HabitosSection },
   { value: 'recuperacion',     label: '😴 Recuperación',    Component: RecuperacionSection },
   { value: 'rendimiento',      label: '🎯 Rendimiento',     Component: RendimientoSection },
-  { value: 'respiracion',      label: '🌬️ Respiración',    Component: RespiracionSection },
-  { value: 'neurociencia',     label: '🧠 Neurociencia',    Component: null }, // own nav
+  { value: 'respiracion',      label: '🌬️ Respiración',     Component: RespiracionSection },
+  { value: 'neurociencia',     label: '🧠 Neurociencia',    Component: NeurocienciaContent }, 
   { value: 'neuroplasticidad', label: '🔬 Ejercicio & SN',  Component: NeuroplasticidadSection },
 ];
 
