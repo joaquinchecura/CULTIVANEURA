@@ -43,6 +43,17 @@ function lsFilter(key, filterObj = {}, limitN = 50) {
   return all.slice(0, limitN);
 }
 
+// ─── PDF generator ────────────────────────────────────────────────────────────
+
+function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
+  const doc      = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W        = 210;
+  const now      = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd   = endOfWeek(now,   { weekStartsOn: 1 });
+
+  const fmtDate  = d => format(d, "d 'de' MMMM yyyy", { locale: es });
+
   // ── Filtrar esta semana ──
   const inWeek = date => {
     try { return isWithinInterval(typeof date === 'string' ? parseISO(date) : date, { start: weekStart, end: weekEnd }); }
@@ -605,6 +616,18 @@ export default function Estado() {
           <h1 className="text-2xl font-serif text-foreground mt-0.5">Mi Estado</h1>
           <p className="text-sm text-muted-foreground mt-1">El núcleo de tu práctica neuro</p>
         </div>
+
+        {/* Botón PDF semanal */}
+        <button
+          onClick={handleExportPDF}
+          disabled={pdfLoading}
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors disabled:opacity-50"
+          title="Descargar reporte semanal PDF"
+        >
+          <FileDown className="w-4 h-4" />
+          {pdfLoading ? 'Generando...' : 'PDF semanal'}
+        </button>
+      </div>
 
       {/* ── Tabs ── */}
       <div className="flex gap-1 p-1 rounded-2xl mb-6" style={{ background: 'var(--muted)' }}>
