@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, ArrowRight, TrendingUp, BookOpen, Heart } from 'lucide-react';
