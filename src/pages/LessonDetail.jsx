@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Clock, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -12,8 +11,14 @@ export default function LessonDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.entities.NeuroLesson.filter({ id }, '-created_date', 1)
-      .then(data => { if (data.length) setLesson(data[0]); setLoading(false); });
+    // Todo dentro del useEffect
+    const lessons = JSON.parse(localStorage.getItem('neura_lessons') || '[]');
+    const found = lessons.find(l => l.id === id || l.id === Number(id));
+    
+    if (found) {
+      setLesson(found);
+    }
+    setLoading(false);
   }, [id]);
 
   if (loading) {

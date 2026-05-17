@@ -32,13 +32,21 @@ export default function Home() {
   const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
 
   useEffect(() => {
-    if (userEmail) {
-      base44.entities.CheckIn.filter({ user_email: userEmail }, '-created_date', 1)
-        .then(r => { if (r.length) { setLastCheckIn(r[0]); setCheckInCount(r.length); } });
-      base44.entities.NeuroLesson.filter({ is_published: true }, '-created_date', 3)
-        .then(setRecentLessons);
+    const checkins = JSON.parse(localStorage.getItem('neura_checkins') || '[]')
+      .filter(c => c.user_email === userEmail)
+      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    
+    if (checkins.length) {
+      setLastCheckIn(checkins[0]);
+      setCheckInCount(checkins.length);
     }
-    setLastEmotional(getLastEmotionalCheckin());
+    
+    const lessons = JSON.parse(localStorage.getItem('neura_lessons') || '[]')
+      .filter(l => l.is_published)
+      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+      .slice(0, 3);
+    
+    setRecentLessons(lessons);
   }, [userEmail]);
 
   const ns = lastCheckIn ? nervousSystemConfig[lastCheckIn.nervous_system] : null;
