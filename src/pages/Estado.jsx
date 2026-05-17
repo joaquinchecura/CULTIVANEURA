@@ -4,13 +4,219 @@ import CheckInWizard from '@/components/neuro/CheckInWizard';
 import DiagnosisCard from '@/components/neuro/DiagnosisCard';
 import NuanceWheel from '@/components/equilibrio/NuanceWheel';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, ArrowLeft, Check } from 'lucide-react';
-import { format } from 'date-fns';
+import { RotateCcw, ArrowLeft, Check, FileDown } from 'lucide-react';
+import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
 
-// ─── Sistema data (from Equilibrio.jsx) ───────────────────────────────────────
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+
+const LS_CHECKIN_KEY    = 'cultiva_checkins';
+const LS_SISTEMA_KEY    = 'cultiva_sistema_checkins';
+
+function lsGet(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); }
+  catch { return []; }
+}
+
+function lsSet(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+/** Guardar un nuevo registro y devolver el objeto guardado */
+function lsCreate(key, record) {
+  const all  = lsGet(key);
+  const item = { ...record, id: crypto.randomUUID(), created_date: new Date().toISOString() };
+  lsSet(key, [item, ...all]);
+  return item;
+}
+
+/** Filtrar, ordenar por campo desc, limitar N resultados */
+function lsFilter(key, filterObj = {}, limitN = 50) {
+  let all = lsGet(key);
+  Object.entries(filterObj).forEach(([k, v]) => {
+    all = all.filter(item => item[k] === v);
+  });
+  all.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+  return all.slice(0, limitN);
+}
+
+// ─── PDF generator ────────────────────────────────────────────────────────────
+
+async function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
+  // Carga dinámica de jsPDF (no necesita instalación si se usa CDN en index.html)
+  // Si usás Vite/bundler: npm install jspdf  y  import { jsPDF } from 'jspdf'
+  const { jsPDF } = await import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+    .then(() => window.jspdf || { jsPDF: window.jsPDF })
+    .catch(async () => {
+      const mod = await import('jspdf');
+      return { jsPDF: mod.jsPDF || mod.default };
+    });
+
+  const doc      = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W        = 210;
+  const now      = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd   = endOfWeek(now,   { weekStartsOn: 1 });
+
+  const fmtDate  = d => format(d, "d 'de' MMMM yyyy", { locale: es });
+
+  // ── Filtrar esta semana ──
+  const inWeek = date => {
+    try { return isWithinInterval(typeof date === 'string' ? parseISO(date) : date, { start: weekStart, end: weekEnd }); }
+    catch { return false; }
+  };
+
+  const weekCheckins = checkins.filter(c => inWeek(c.date || c.created_date));
+  const weekSistema  = sistemaCheckins.filter(c => inWeek(c.date || c.created_date));
+
+  // ── Paleta ──
+  const GREEN  = [107, 203, 119];
+  const DARK   = [30,  30,  30];
+  const GRAY   = [100, 100, 100];
+  const LIGHT  = [245, 245, 245];
+  const ACCENT = [38,  70,  83];
+
+  let y = 0;
+
+  // ── Encabezado ──
+  doc.setFillColor(...ACCENT);
+  doc.rect(0, 0, W, 38, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('Cultiva Neura', 14, 14);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Reporte Semanal de Estado', 14, 21);
+  doc.text(`${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`, 14, 28);
+  if (userEmail) doc.text(userEmail, W - 14, 28, { align: 'right' });
+
+  y = 46;
+
+  // ── Resumen numérico ──
+  doc.setFillColor(...LIGHT);
+  doc.roundedRect(10, y, W - 20, 22, 3, 3, 'F');
+
+  doc.setTextColor(...DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(`${weekCheckins.length}`, 30,  y + 9,  { align: 'center' });
+  doc.text(`${weekSistema.length}`,  105, y + 9,  { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...GRAY);
+  doc.text('Check-ins rápidos',    30,  y + 15, { align: 'center' });
+  doc.text('Estados del Sistema',  105, y + 15, { align: 'center' });
+
+  y += 30;
+
+  // ── Sección: Check-ins rápidos ──
+  if (weekCheckins.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...ACCENT);
+    doc.text('Check-ins Rápidos', 14, y);
+    y += 7;
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, y, W - 14, y);
+    y += 5;
+
+    weekCheckins.forEach((item, i) => {
+      if (y > 260) { doc.addPage(); y = 20; }
+
+      const bg = i % 2 === 0 ? [252, 252, 252] : [255, 255, 255];
+      doc.setFillColor(...bg);
+      doc.rect(12, y - 4, W - 24, 14, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...DARK);
+      const dateStr = item.date
+        ? format(parseISO(item.date + 'T00:00:00'), 'EEEE d MMM', { locale: es })
+        : format(new Date(item.created_date), 'EEEE d MMM', { locale: es });
+      doc.text(dateStr, 16, y + 2);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...GRAY);
+      const estado = [item.nervous_system, item.emotion, item.mind].filter(Boolean).join(' · ');
+      doc.text(estado, 16, y + 8);
+
+      y += 16;
+    });
+  }
+
+  y += 6;
+
+  // ── Sección: Estados del Sistema ──
+  if (weekSistema.length > 0) {
+    if (y > 220) { doc.addPage(); y = 20; }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...ACCENT);
+    doc.text('Estados del Sistema', 14, y);
+    y += 7;
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, y, W - 14, y);
+    y += 5;
+
+    weekSistema.forEach((item, i) => {
+      if (y > 260) { doc.addPage(); y = 20; }
+
+      const bg = i % 2 === 0 ? [252, 252, 252] : [255, 255, 255];
+      doc.setFillColor(...bg);
+      doc.rect(12, y - 4, W - 24, 16, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...DARK);
+      const dateStr = item.date
+        ? format(parseISO(item.date + 'T00:00:00'), 'EEEE d MMM', { locale: es })
+        : format(new Date(item.created_date), 'EEEE d MMM', { locale: es });
+      doc.text(dateStr, 16, y + 2);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...GRAY);
+      doc.text(`${item.nuanceEmoji || ''} ${item.nuanceName || ''} · ${item.stateName || ''}`, 16, y + 8);
+
+      const intensityLabel = ['', 'Leve', 'Moderado', 'Intenso'][item.intensity] || '';
+      doc.setFontSize(8);
+      doc.text(`Intensidad: ${intensityLabel}`, W - 30, y + 5, { align: 'right' });
+
+      y += 18;
+    });
+  }
+
+  // ── Sin datos ──
+  if (weekCheckins.length === 0 && weekSistema.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(11);
+    doc.setTextColor(...GRAY);
+    doc.text('Sin registros esta semana.', W / 2, y + 20, { align: 'center' });
+  }
+
+  // ── Footer ──
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(180, 180, 180);
+    doc.text(`Generado ${format(now, "d MMM yyyy HH:mm", { locale: es })} · Página ${p}/${pageCount}`, W / 2, 292, { align: 'center' });
+  }
+
+  const filename = `cultiva-reporte-${format(weekStart, 'yyyy-MM-dd')}.pdf`;
+  doc.save(filename);
+}
+
+// ─── Sistema data ──────────────────────────────────────────────────────────────
 
 const SYSTEM_STATES = [
   {
@@ -26,10 +232,10 @@ const SYSTEM_STATES = [
       { name: 'Anticipación', emoji: '🤔', response: 'enfocar',   learning: 'La expectativa puede enfocarse en acciones concretas.' },
     ],
     adaptations: {
-      movement:   '• Volumen: 60% habitual\n• Tempo: Lento controlado\n• Pausas: Más frecuentes\n• Enfoque: Respiración consciente',
-      nutrition:  'Priorizá comidas estables y ricas en proteínas y fibra para estabilizar la energía.',
-      rehab:      '5 min de movilidad cervical + respiración guiada 4-7-8.',
-      rest:       'Rutina de descarga nocturna disponible post-entreno.',
+      movement:  '• Volumen: 60% habitual\n• Tempo: Lento controlado\n• Pausas: Más frecuentes\n• Enfoque: Respiración consciente',
+      nutrition: 'Priorizá comidas estables y ricas en proteínas y fibra para estabilizar la energía.',
+      rehab:     '5 min de movilidad cervical + respiración guiada 4-7-8.',
+      rest:      'Rutina de descarga nocturna disponible post-entreno.',
     },
   },
   {
@@ -40,9 +246,9 @@ const SYSTEM_STATES = [
     activationLevel: 2,
     sensations: ['Equilibrio', 'Energía estable', 'Claridad'],
     nuances: [
-      { name: 'Alegría',    emoji: '😊', response: 'fortalecer', learning: 'La energía positiva es un buen momento para fortalecer.' },
-      { name: 'Confianza',  emoji: '🤝', response: 'expandir',   learning: 'La estabilidad emocional permite progresar con seguridad.' },
-      { name: 'Calma',      emoji: '😌', response: 'sostener',   learning: 'La calma es el mejor estado para el aprendizaje motor.' },
+      { name: 'Alegría',   emoji: '😊', response: 'fortalecer', learning: 'La energía positiva es un buen momento para fortalecer.' },
+      { name: 'Confianza', emoji: '🤝', response: 'expandir',   learning: 'La estabilidad emocional permite progresar con seguridad.' },
+      { name: 'Calma',     emoji: '😌', response: 'sostener',   learning: 'La calma es el mejor estado para el aprendizaje motor.' },
     ],
     adaptations: {
       movement:  '• Volumen: Normal\n• Progresión: Avanzar en cargas\n• Enfoque: Técnica y fuerza\n• Ejercicios preventivos incluidos',
@@ -72,9 +278,8 @@ const SYSTEM_STATES = [
   },
 ];
 
-// ─── Sistema inline sub-components ───────────────────────────────────────────
+// ─── Sub-components (sin cambios de lógica) ───────────────────────────────────
 
-/** Step 1 — choose one of the 3 system states */
 function StateSelector({ onSelect }) {
   return (
     <div className="space-y-3">
@@ -97,31 +302,24 @@ function StateSelector({ onSelect }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold text-foreground">{state.name}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {state.sensations.join(' · ')}
-            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{state.sensations.join(' · ')}</p>
           </div>
-          <div
-            className="w-2 h-8 rounded-full flex-shrink-0"
-            style={{ background: `${state.color}66` }}
-          />
+          <div className="w-2 h-8 rounded-full flex-shrink-0" style={{ background: `${state.color}66` }} />
         </motion.button>
       ))}
     </div>
   );
 }
 
-/** Step 3 — intensity (1–3) */
 function IntensitySelector({ state, nuance, intensity, onChange, onConfirm, onBack }) {
   const levels = [
-    { value: 1, label: 'Leve',    dots: 1, desc: 'Lo noto pero no me condiciona.' },
+    { value: 1, label: 'Leve',     dots: 1, desc: 'Lo noto pero no me condiciona.' },
     { value: 2, label: 'Moderado', dots: 2, desc: 'Está presente y me influye.' },
     { value: 3, label: 'Intenso',  dots: 3, desc: 'Es dominante en este momento.' },
   ];
 
   return (
     <div className="space-y-5">
-      {/* State + nuance summary */}
       <div
         className="flex items-center gap-3 rounded-2xl p-4"
         style={{ background: `${state.color}15`, border: `1px solid ${state.color}30` }}
@@ -144,8 +342,8 @@ function IntensitySelector({ state, nuance, intensity, onChange, onConfirm, onBa
             onClick={() => onChange(lvl.value)}
             className="w-full flex items-center justify-between px-5 py-4 rounded-2xl border-2 transition-all text-left"
             style={{
-              background: intensity === lvl.value ? `${state.color}15` : 'var(--card)',
-              borderColor: intensity === lvl.value ? state.color : 'var(--border)',
+              background:   intensity === lvl.value ? `${state.color}15` : 'var(--card)',
+              borderColor:  intensity === lvl.value ? state.color : 'var(--border)',
             }}
           >
             <div>
@@ -184,10 +382,8 @@ function IntensitySelector({ state, nuance, intensity, onChange, onConfirm, onBa
   );
 }
 
-/** Step 4 — adaptation cards + save */
 function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving }) {
   const intensityLabel = ['', 'Leve', 'Moderado', 'Intenso'][intensity];
-
   const ADAPT_CONFIG = [
     { key: 'movement',  emoji: '💪', label: 'Movimiento' },
     { key: 'nutrition', emoji: '🥗', label: 'Nutrición' },
@@ -197,21 +393,17 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div
         className="rounded-2xl p-4 flex items-center gap-3"
         style={{ background: `${state.color}15`, border: `1px solid ${state.color}30` }}
       >
         <span style={{ fontSize: '36px' }}>{nuance.emoji}</span>
         <div>
-          <p className="text-base font-bold text-foreground">
-            {nuance.name} · {state.name}
-          </p>
+          <p className="text-base font-bold text-foreground">{nuance.name} · {state.name}</p>
           <p className="text-xs text-muted-foreground">{intensityLabel} · Tu día adaptado</p>
         </div>
       </div>
 
-      {/* Microlearning */}
       <div className="rounded-2xl p-4" style={{ background: '#264653' }}>
         <p className="text-xs font-bold mb-1.5" style={{ color: '#E9C46A' }}>💡 Para recordar</p>
         <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.9)' }}>
@@ -219,14 +411,9 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
         </p>
       </div>
 
-      {/* Adaptation cards */}
       <div className="grid grid-cols-2 gap-3">
         {ADAPT_CONFIG.map(({ key, emoji, label }) => (
-          <div
-            key={key}
-            className="rounded-2xl p-4 border bg-card"
-            style={{ borderColor: 'var(--border)' }}
-          >
+          <div key={key} className="rounded-2xl p-4 border bg-card" style={{ borderColor: 'var(--border)' }}>
             <p className="text-base mb-1.5">{emoji}</p>
             <p className="text-xs font-bold text-foreground mb-1.5">{label}</p>
             <p className="text-xs text-muted-foreground leading-relaxed">{state.adaptations[key]}</p>
@@ -234,7 +421,6 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
         ))}
       </div>
 
-      {/* Actions */}
       <div className="flex gap-3 pt-1">
         <button
           onClick={onBack}
@@ -255,7 +441,6 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
   );
 }
 
-/** Completion screen shown after saving */
 function SistemaComplete({ state, nuance, onReset }) {
   return (
     <motion.div
@@ -271,9 +456,7 @@ function SistemaComplete({ state, nuance, onReset }) {
       </div>
       <div>
         <p className="text-xl font-serif font-bold text-foreground">Check-in guardado</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {nuance.name} · {state.name}
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">{nuance.name} · {state.name}</p>
       </div>
       <button
         onClick={onReset}
@@ -285,36 +468,34 @@ function SistemaComplete({ state, nuance, onReset }) {
   );
 }
 
-/** Full Sistema flow (Equilibrio adapted) */
+// ─── SistemaFlow — usa localStorage en lugar de base44 ────────────────────────
+
 function SistemaFlow({ userEmail }) {
-  const [step, setStep] = useState('state');       // state → nuance → intensity → adaptations → done
-  const [selectedState, setSelectedState] = useState(null);
-  const [selectedNuance, setSelectedNuance] = useState(null);
-  const [intensity, setIntensity] = useState(2);
-  const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
+  const [step,           setStep]          = useState('state');
+  const [selectedState,  setSelectedState] = useState(null);
+  const [selectedNuance, setSelectedNuance]= useState(null);
+  const [intensity,      setIntensity]     = useState(2);
+  const [saving,         setSaving]        = useState(false);
+  const [done,           setDone]          = useState(false);
 
   function reset() {
-    setStep('state');
-    setSelectedState(null);
-    setSelectedNuance(null);
-    setIntensity(2);
-    setDone(false);
+    setStep('state'); setSelectedState(null);
+    setSelectedNuance(null); setIntensity(2); setDone(false);
   }
 
-  async function handleSave() {
+  function handleSave() {
     setSaving(true);
     try {
-      await base44.entities.DailySystemCheckin.create({
-        stateId:       selectedState.id,
-        stateName:     selectedState.name,
-        stateColor:    selectedState.color,
-        nuanceName:    selectedNuance.name,
-        nuanceEmoji:   selectedNuance.emoji,
+      lsCreate(LS_SISTEMA_KEY, {
+        stateId:     selectedState.id,
+        stateName:   selectedState.name,
+        stateColor:  selectedState.color,
+        nuanceName:  selectedNuance.name,
+        nuanceEmoji: selectedNuance.emoji,
         intensity,
-        user_email:    userEmail,
-        date:          format(new Date(), 'yyyy-MM-dd'),
-        completed:     true,
+        user_email:  userEmail,
+        date:        format(new Date(), 'yyyy-MM-dd'),
+        completed:   true,
       });
       setDone(true);
     } catch (e) {
@@ -324,29 +505,19 @@ function SistemaFlow({ userEmail }) {
     }
   }
 
-  if (done) {
-    return <SistemaComplete state={selectedState} nuance={selectedNuance} onReset={reset} />;
-  }
+  if (done) return <SistemaComplete state={selectedState} nuance={selectedNuance} onReset={reset} />;
 
   return (
     <AnimatePresence mode="wait">
       {step === 'state' && (
         <motion.div key="state" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
-          <StateSelector
-            onSelect={s => { setSelectedState(s); setStep('nuance'); }}
-          />
+          <StateSelector onSelect={s => { setSelectedState(s); setStep('nuance'); }} />
         </motion.div>
       )}
 
       {step === 'nuance' && selectedState && (
         <motion.div key="nuance" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
-          <NuanceWheel
-            state={selectedState}
-            selectedNuance={selectedNuance}
-            onSelect={setSelectedNuance}
-          />
-
-          {/* Navigation buttons */}
+          <NuanceWheel state={selectedState} selectedNuance={selectedNuance} onSelect={setSelectedNuance} />
           <div className="flex gap-3 mt-5">
             <button
               onClick={() => { setStep('state'); setSelectedState(null); setSelectedNuance(null); }}
@@ -370,12 +541,9 @@ function SistemaFlow({ userEmail }) {
       {step === 'intensity' && selectedState && selectedNuance && (
         <motion.div key="intensity" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
           <IntensitySelector
-            state={selectedState}
-            nuance={selectedNuance}
-            intensity={intensity}
-            onChange={setIntensity}
-            onConfirm={() => setStep('adaptations')}
-            onBack={() => setStep('nuance')}
+            state={selectedState} nuance={selectedNuance}
+            intensity={intensity} onChange={setIntensity}
+            onConfirm={() => setStep('adaptations')} onBack={() => setStep('nuance')}
           />
         </motion.div>
       )}
@@ -383,12 +551,9 @@ function SistemaFlow({ userEmail }) {
       {step === 'adaptations' && selectedState && selectedNuance && (
         <motion.div key="adaptations" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
           <AdaptationSummary
-            state={selectedState}
-            nuance={selectedNuance}
-            intensity={intensity}
-            onSave={handleSave}
-            onBack={() => setStep('intensity')}
-            saving={saving}
+            state={selectedState} nuance={selectedNuance}
+            intensity={intensity} onSave={handleSave}
+            onBack={() => setStep('intensity')} saving={saving}
           />
         </motion.div>
       )}
@@ -409,54 +574,71 @@ export default function Estado() {
   const { user: clerkUser } = useUser();
   const [activeTab, setActiveTab] = useState('checkin');
 
-  // Check-in tab state (unchanged)
-  const [checkIn, setCheckIn] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
-  const [history, setHistory] = useState([]);
+  const [checkIn,  setCheckIn]  = useState(null);
+  const [saving,   setSaving]   = useState(false);
+  const [done,     setDone]     = useState(false);
+  const [history,  setHistory]  = useState([]);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
 
+  // Cargar historial desde localStorage al montar o cuando cambia el email
   useEffect(() => {
-    if (userEmail) {
-      base44.entities.CheckIn.filter({ user_email: userEmail }, '-created_date', 5)
-        .then(setHistory);
-    }
-  }, [userEmail]);
+    const items = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 5);
+    setHistory(items);
+  }, [userEmail, done]);
 
   async function handleComplete(data) {
     setSaving(true);
     const today = format(new Date(), 'yyyy-MM-dd');
-    const saved = await base44.entities.CheckIn.create({
-      ...data,
-      user_email: userEmail,
-      date: today,
-    });
+    const saved = lsCreate(LS_CHECKIN_KEY, { ...data, user_email: userEmail, date: today });
     setCheckIn(saved);
     setDone(true);
     setSaving(false);
-    base44.entities.CheckIn.filter({ user_email: userEmail }, '-created_date', 5).then(setHistory);
+    const items = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 5);
+    setHistory(items);
   }
 
-  function resetCheckin() {
-    setCheckIn(null);
-    setDone(false);
+  function resetCheckin() { setCheckIn(null); setDone(false); }
+
+  async function handleExportPDF() {
+    setPdfLoading(true);
+    try {
+      const allCheckins = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 200);
+      const allSistema  = lsFilter(LS_SISTEMA_KEY,  userEmail ? { user_email: userEmail } : {}, 200);
+      await generarPDFSemanal(allCheckins, allSistema, userEmail);
+    } catch (e) {
+      console.error('Error generando PDF:', e);
+      alert('Hubo un error al generar el PDF. Revisá la consola.');
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
   return (
     <div className="px-6 pt-12 pb-8">
-      {/* ── Page header ── */}
-      <div className="mb-5">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Check-in</p>
-        <h1 className="text-2xl font-serif text-foreground mt-0.5">Mi Estado</h1>
-        <p className="text-sm text-muted-foreground mt-1">El núcleo de tu práctica neuro</p>
+      {/* ── Header ── */}
+      <div className="mb-5 flex items-start justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Check-in</p>
+          <h1 className="text-2xl font-serif text-foreground mt-0.5">Mi Estado</h1>
+          <p className="text-sm text-muted-foreground mt-1">El núcleo de tu práctica neuro</p>
+        </div>
+
+        {/* Botón PDF semanal */}
+        <button
+          onClick={handleExportPDF}
+          disabled={pdfLoading}
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors disabled:opacity-50"
+          title="Descargar reporte semanal PDF"
+        >
+          <FileDown className="w-4 h-4" />
+          {pdfLoading ? 'Generando...' : 'PDF semanal'}
+        </button>
       </div>
 
-      {/* ── Tab bar ── */}
-      <div
-        className="flex gap-1 p-1 rounded-2xl mb-6"
-        style={{ background: 'var(--muted)' }}
-      >
+      {/* ── Tabs ── */}
+      <div className="flex gap-1 p-1 rounded-2xl mb-6" style={{ background: 'var(--muted)' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -465,7 +647,7 @@ export default function Estado() {
               'flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all',
               activeTab === tab.id
                 ? 'bg-card text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {tab.label}
@@ -473,17 +655,14 @@ export default function Estado() {
         ))}
       </div>
 
-      {/* ── Tab content ── */}
+      {/* ── Contenido ── */}
       <AnimatePresence mode="wait">
 
-        {/* ── Check-in rápido (existing) ── */}
         {activeTab === 'checkin' && (
           <motion.div
             key="checkin"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}
           >
             <AnimatePresence mode="wait">
               {!done ? (
@@ -502,13 +681,8 @@ export default function Estado() {
               )}
             </AnimatePresence>
 
-            {/* History */}
             {history.length > 0 && !done && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { delay: 0.2 } }}
-                className="mt-8"
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.2 } }} className="mt-8">
                 <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-widest">
                   Historial reciente
                 </h2>
@@ -526,7 +700,9 @@ export default function Estado() {
                         </div>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {item.date ? format(new Date(item.date + 'T00:00:00'), 'd MMM', { locale: es }) : ''}
+                        {item.date
+                          ? format(new Date(item.date + 'T00:00:00'), 'd MMM', { locale: es })
+                          : ''}
                       </span>
                     </div>
                   ))}
@@ -536,14 +712,11 @@ export default function Estado() {
           </motion.div>
         )}
 
-        {/* ── Estado del Sistema (Equilibrio) ── */}
         {activeTab === 'sistema' && (
           <motion.div
             key="sistema"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}
           >
             <SistemaFlow userEmail={userEmail} />
           </motion.div>
