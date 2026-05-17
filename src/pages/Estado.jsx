@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CheckInWizard from '@/components/neuro/CheckInWizard';
@@ -44,16 +45,7 @@ function lsFilter(key, filterObj = {}, limitN = 50) {
 
 // ─── PDF generator ────────────────────────────────────────────────────────────
 
-async function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
-  // Carga dinámica de jsPDF (no necesita instalación si se usa CDN en index.html)
-  // Si usás Vite/bundler: npm install jspdf  y  import { jsPDF } from 'jspdf'
-  const { jsPDF } = await import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
-    .then(() => window.jspdf || { jsPDF: window.jsPDF })
-    .catch(async () => {
-      const mod = await import('jspdf');
-      return { jsPDF: mod.jsPDF || mod.default };
-    });
-
+function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
   const doc      = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W        = 210;
   const now      = new Date();
@@ -606,7 +598,7 @@ export default function Estado() {
     try {
       const allCheckins = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 200);
       const allSistema  = lsFilter(LS_SISTEMA_KEY,  userEmail ? { user_email: userEmail } : {}, 200);
-      await generarPDFSemanal(allCheckins, allSistema, userEmail);
+      generarPDFSemanal(allCheckins, allSistema, userEmail);
     } catch (e) {
       console.error('Error generando PDF:', e);
       alert('Hubo un error al generar el PDF. Revisá la consola.');
