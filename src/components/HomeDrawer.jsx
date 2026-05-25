@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Home, Zap, BookOpen, BarChart2, Settings, Gamepad2, Menu, User, LogOut } from 'lucide-react';
+import { X, Home, Zap, BookOpen, BarChart2, Settings, Gamepad2, Menu, User, LogOut, Heart } from 'lucide-react';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio', end: true },
   { to: '/estado', icon: Zap, label: 'Mi Estado' },
-  { to: '/regular', icon: Zap, label: 'Regular' },
+  { to: '/rueda-emocional', icon: Heart, label: 'Emociones' },
   { to: '/aprender', icon: BookOpen, label: 'Aprender' },
   { to: '/juegos', icon: Gamepad2, label: 'Juegos' },
   { to: '/progreso', icon: BarChart2, label: 'Progreso' },
@@ -42,14 +42,18 @@ export default function HomeDrawer() {
         {open && (
           <>
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 bg-black/40 z-40"
+              className="fixed inset-0 bg-black/40 z-[60]"
             />
             <motion.div
-              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
+              initial={{ x: '-100%' }} 
+              animate={{ x: 0 }} 
+              exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="fixed top-0 left-0 h-full w-72 bg-card border-r border-border z-50 flex flex-col"
+              className="fixed top-0 left-0 h-full w-72 bg-card border-r border-border z-[70] flex flex-col"
             >
               <div className="flex items-center justify-between px-5 pt-12 pb-6 border-b border-border">
                 <div>
@@ -80,7 +84,9 @@ export default function HomeDrawer() {
                   const isActive = end ? location.pathname === to : location.pathname.startsWith(to);
                   return (
                     <Link
-                      key={to} to={to} onClick={() => setOpen(false)}
+                      key={to} 
+                      to={to} 
+                      onClick={() => setOpen(false)}
                       className={cn(
                         'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
                         isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -94,7 +100,8 @@ export default function HomeDrawer() {
 
                 {isAdmin && (
                   <Link
-                    to="/admin" onClick={() => setOpen(false)}
+                    to="/admin" 
+                    onClick={() => setOpen(false)}
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
                       location.pathname === '/admin' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -105,7 +112,8 @@ export default function HomeDrawer() {
                 )}
               </nav>
 
-              <div className="px-3 py-4 border-t border-border">
+              {/* FIX: Padding bottom para que el botón no quede tapado por el bottom nav */}
+              <div className="px-3 py-4 border-t border-border pb-24 md:pb-4">
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground w-full transition-all"
