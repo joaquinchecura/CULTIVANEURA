@@ -70,3 +70,13 @@
     @apply font-sans tracking-tight; /* 👈 Cambiamos font-serif por font-sans */
   }
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
