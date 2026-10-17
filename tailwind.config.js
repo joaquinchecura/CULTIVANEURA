@@ -7,6 +7,7 @@ module.exports = {
   		fontFamily: {
   			sans: ['var(--font-sans)', 'sans-serif'],
   			serif: ['var(--font-serif)', 'serif'],
+			mono:  ['"DM Mono"', 'ui-monospace', 'monospace'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
