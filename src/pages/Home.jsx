@@ -3,20 +3,16 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, ArrowRight, TrendingUp, BookOpen, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { nervousSystemConfig } from '@/components/neuro/StateCard';
+import { NS_CONFIG } from '@/lib/nervous-system';
+import { LS_KEYS, lsGet } from '@/lib/storage';
 import HomeDrawer from '@/components/HomeDrawer';
 import { useUser } from '@clerk/clerk-react';
 
-const stateGradients = {
-  regulado: 'from-emerald-50 to-background',
-  activado: 'from-amber-50 to-background',
-  colapsado: 'from-rose-50 to-background',
-};
-
-// Last emotional checkin from localStorage
-function getLastEmotionalCheckin() {
+function getLastEmotionalCheckin(userEmail) {
   try {
-    const checkins = JSON.parse(localStorage.getItem('neura_emotional_checkins') || '[]');
+    const checkins = lsGet(LS_KEYS.EMOTIONAL)
+      .filter(c => !userEmail || !c.user_email || c.user_email === userEmail)
+      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     return checkins[0] || null;
   } catch { return null; }
 }
@@ -32,30 +28,33 @@ export default function Home() {
   const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
 
   useEffect(() => {
-    const checkins = JSON.parse(localStorage.getItem('neura_checkins') || '[]')
+    if (!userEmail) return;
+
+    // Check-ins del sistema nervioso
+    const checkins = lsGet(LS_KEYS.CHECKINS)
       .filter(c => c.user_email === userEmail)
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-    
-    if (checkins.length) {
-      setLastCheckIn(checkins[0]);
-      setCheckInCount(checkins.length);
-    }
-    
-    const lessons = JSON.parse(localStorage.getItem('neura_lessons') || '[]')
+    setLastCheckIn(checkins[0] ?? null);
+    setCheckInCount(checkins.length);
+
+    // Último check-in emocional
+    setLastEmotional(getLastEmotionalCheckin(userEmail));
+
+    // Lecciones recientes
+    const lessons = lsGet(LS_KEYS.LESSONS)
       .filter(l => l.is_published)
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
       .slice(0, 3);
-    
     setRecentLessons(lessons);
   }, [userEmail]);
 
-  const ns = lastCheckIn ? nervousSystemConfig[lastCheckIn.nervous_system] : null;
+  const ns = lastCheckIn ? NS_CONFIG[lastCheckIn.nervous_system] : null;
   const today = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className={`px-6 pt-12 pb-8 bg-gradient-to-b ${ns ? stateGradients[lastCheckIn.nervous_system] : 'from-secondary to-background'}`}>
+      <div className={`px-6 pt-12 pb-8 bg-gradient-to-b ${ns ? ns.gradient : 'from-secondary to-background'}`}>
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-start justify-between mb-1">
             <div>
@@ -171,7 +170,7 @@ export default function Home() {
             </div>
             <div className="space-y-3">
               {recentLessons.map(lesson => (
-                <Link key={lesson.id} to={`/aprender/${lesson.id}`}
+                <Link key={lesson.id} to={`/aprender?lesson=${lesson.id}`}
                   className="flex items-center gap-3 bg-card border border-border rounded-2xl p-3 hover:shadow-sm transition-shadow">
                   {lesson.cover_image_url
                     ? <img src={lesson.cover_image_url} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" alt="" />

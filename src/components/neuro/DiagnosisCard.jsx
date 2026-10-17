@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { nervousSystemConfig } from './StateCard';
+import { NS_CONFIG } from '@/lib/nervous-system';
 
 const diagnoses = {
   regulado: {
@@ -25,10 +25,36 @@ const diagnoses = {
   },
 };
 
+const EMOTION_LABELS = {
+  ansiedad:     'Ansiedad',
+  calma:        'Calma',
+  frustracion:  'Frustración',
+  apatia:       'Apatía',
+  motivacion:   'Motivación',
+};
+const BODY_LABELS = {
+  tension:     'Tensión',
+  energia:     'Energía',
+  respiracion: 'Respiración',
+  digestion:   'Digestión',
+};
+const MIND_LABELS = {
+  clara:     'Clara',
+  dispersa:  'Dispersa',
+  rumiando:  'Rumiando',
+  enfocada:  'Enfocada',
+};
+
 export default function DiagnosisCard({ checkIn }) {
-  const config = nervousSystemConfig[checkIn.nervous_system];
+  const config = NS_CONFIG[checkIn.nervous_system];
   const diagnosis = diagnoses[checkIn.nervous_system];
   if (!config || !diagnosis) return null;
+
+  const items = [
+    { label: 'Emoción', value: EMOTION_LABELS[checkIn.emotion] ?? checkIn.emotion },
+    { label: 'Cuerpo',  value: BODY_LABELS[checkIn.body]       ?? checkIn.body },
+    { label: 'Mente',   value: MIND_LABELS[checkIn.mind]       ?? checkIn.mind },
+  ].filter(x => x.value);
 
   return (
     <motion.div
@@ -36,10 +62,7 @@ export default function DiagnosisCard({ checkIn }) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-3xl overflow-hidden bg-card border border-border shadow-sm"
     >
-      <div className={`px-6 pt-6 pb-4 ${
-        checkIn.nervous_system === 'regulado' ? 'bg-emerald-50' :
-        checkIn.nervous_system === 'activado' ? 'bg-amber-50' : 'bg-rose-50'
-      }`}>
+      <div className={`px-6 pt-6 pb-4 ${config.bgSoft}`}>
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={16} className="text-primary" />
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Diagnóstico</span>
@@ -54,18 +77,16 @@ export default function DiagnosisCard({ checkIn }) {
       <div className="px-6 py-4 space-y-4">
         <p className="text-sm text-muted-foreground leading-relaxed">{diagnosis.body}</p>
 
-        <div className="grid grid-cols-3 gap-2 text-xs">
-          {[
-            { label: 'Emoción', value: checkIn.emotion },
-            { label: 'Cuerpo', value: checkIn.body },
-            { label: 'Mente', value: checkIn.mind },
-          ].filter(x => x.value).map(({ label, value }) => (
-            <div key={label} className="bg-muted rounded-xl p-2.5 text-center">
-              <div className="text-muted-foreground mb-0.5">{label}</div>
-              <div className="font-medium capitalize text-foreground">{value}</div>
-            </div>
-          ))}
-        </div>
+        {items.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            {items.map(({ label, value }) => (
+              <div key={label} className="bg-muted rounded-xl p-2.5 text-center">
+                <div className="text-muted-foreground mb-0.5">{label}</div>
+                <div className="font-medium text-foreground">{value}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <Button asChild className="w-full gap-1 rounded-xl">
           <Link to={diagnosis.ctaTo}>

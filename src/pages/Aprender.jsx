@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useSearchParams } from 'react-router-dom';
 
 import SistemaNerviosoSection  from '@/components/neuro/SistemaNerviosoSection';
 import EmocionesSection        from '@/components/neuro/EmocionesSection';
@@ -28,11 +29,20 @@ const TABS = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Aprender() {
+  const [searchParams] = useSearchParams();
+  const lessonId = searchParams.get('lesson');
   const [category, setCategory] = useState('sistema_nervioso');
   const activeTab = TABS.find(t => t.value === category);
 
   return (
     <div className="pb-8">
+
+{lessonId && (
+  <div className="px-6 mb-4 p-4 rounded-2xl bg-primary/5 border border-primary/20">
+    <p className="text-sm text-foreground">Lección seleccionada: <strong>{lessonId}</strong></p>
+    <p className="text-xs text-muted-foreground mt-1">(Detalle pendiente de implementar)</p>
+  </div>
+)}
 
       {/* Header */}
       <div className="px-6 pt-12 pb-4">

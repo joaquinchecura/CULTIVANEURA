@@ -1,34 +1,11 @@
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { NS_CONFIG } from '@/lib/nervous-system';
 
-const stateConfig = {
-  regulado: {
-    color: 'bg-emerald-100 border-emerald-300 text-emerald-800',
-    dot: 'bg-emerald-500',
-    label: 'Regulado',
-    emoji: '🟢',
-    desc: 'Tu sistema nervioso está en equilibrio'
-  },
-  activado: {
-    color: 'bg-amber-100 border-amber-300 text-amber-800',
-    dot: 'bg-amber-500',
-    label: 'Activado',
-    emoji: '🟡',
-    desc: 'Alta activación, energía disponible'
-  },
-  colapsado: {
-    color: 'bg-rose-100 border-rose-300 text-rose-800',
-    dot: 'bg-rose-500',
-    label: 'Colapsado',
-    emoji: '🔴',
-    desc: 'Necesitás regulación y calma'
-  }
-};
-
-export const nervousSystemConfig = stateConfig;
+export const nervousSystemConfig = NS_CONFIG;
 
 export default function StateCard({ state, selected, onClick }) {
-  const config = stateConfig[state];
+  const config = NS_CONFIG[state];
   if (!config) return null;
 
   return (
@@ -37,7 +14,7 @@ export default function StateCard({ state, selected, onClick }) {
       onClick={onClick}
       className={cn(
         'w-full text-left p-4 rounded-2xl border-2 transition-all duration-200',
-        config.color,
+        config.bgCard,
         selected ? 'border-current shadow-md scale-[1.02]' : 'border-transparent opacity-80 hover:opacity-100'
       )}
     >

@@ -6,42 +6,12 @@ import DiagnosisCard from '@/components/neuro/DiagnosisCard';
 import NuanceWheel from '@/components/equilibrio/NuanceWheel';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, ArrowLeft, Check, FileDown } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
+import { format, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
-
-// ─── localStorage helpers ─────────────────────────────────────────────────────
-
-const LS_CHECKIN_KEY    = 'cultiva_checkins';
-const LS_SISTEMA_KEY    = 'cultiva_sistema_checkins';
-
-function lsGet(key) {
-  try { return JSON.parse(localStorage.getItem(key) || '[]'); }
-  catch { return []; }
-}
-
-function lsSet(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
-
-/** Guardar un nuevo registro y devolver el objeto guardado */
-function lsCreate(key, record) {
-  const all  = lsGet(key);
-  const item = { ...record, id: crypto.randomUUID(), created_date: new Date().toISOString() };
-  lsSet(key, [item, ...all]);
-  return item;
-}
-
-/** Filtrar, ordenar por campo desc, limitar N resultados */
-function lsFilter(key, filterObj = {}, limitN = 50) {
-  let all = lsGet(key);
-  Object.entries(filterObj).forEach(([k, v]) => {
-    all = all.filter(item => item[k] === v);
-  });
-  all.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-  return all.slice(0, limitN);
-}
+import { LS_KEYS, lsGet, lsSet, lsCreate, lsFilter, todayKey, safeParseDate } from '@/lib/storage';
+import { NS_CONFIG, SYSTEM_STATE_MAP } from '@/lib/nervous-system';
 
 // ─── PDF generator ────────────────────────────────────────────────────────────
 
@@ -54,16 +24,15 @@ function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
 
   const fmtDate  = d => format(d, "d 'de' MMMM yyyy", { locale: es });
 
-  // ── Filtrar esta semana ──
   const inWeek = date => {
-    try { return isWithinInterval(typeof date === 'string' ? parseISO(date) : date, { start: weekStart, end: weekEnd }); }
-    catch { return false; }
+    const d = safeParseDate(date);
+    if (!d) return false;
+    return isWithinInterval(d, { start: weekStart, end: weekEnd });
   };
 
   const weekCheckins = checkins.filter(c => inWeek(c.date || c.created_date));
   const weekSistema  = sistemaCheckins.filter(c => inWeek(c.date || c.created_date));
 
-  // ── Paleta ──
   const GREEN  = [107, 203, 119];
   const DARK   = [30,  30,  30];
   const GRAY   = [100, 100, 100];
@@ -72,121 +41,101 @@ function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
 
   let y = 0;
 
-  // ── Encabezado ──
-  doc.setFillColor(...ACCENT);
-  doc.rect(0, 0, W, 38, 'F');
+  function drawHeader() {
+    doc.setFillColor(...ACCENT);
+    doc.rect(0, 0, W, 38, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('Cultiva Neura', 14, 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Reporte Semanal de Estado', 14, 21);
+    doc.text(`${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`, 14, 28);
+    if (userEmail) doc.text(userEmail, W - 14, 28, { align: 'right' });
+  }
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.text('Cultiva Neura', 14, 14);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text('Reporte Semanal de Estado', 14, 21);
-  doc.text(`${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`, 14, 28);
-  if (userEmail) doc.text(userEmail, W - 14, 28, { align: 'right' });
-
+  drawHeader();
   y = 46;
 
-  // ── Resumen numérico ──
+  // Resumen numérico
   doc.setFillColor(...LIGHT);
   doc.roundedRect(10, y, W - 20, 22, 3, 3, 'F');
-
   doc.setTextColor(...DARK);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text(`${weekCheckins.length}`, 30,  y + 9,  { align: 'center' });
   doc.text(`${weekSistema.length}`,  105, y + 9,  { align: 'center' });
-
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(...GRAY);
   doc.text('Check-ins rápidos',    30,  y + 15, { align: 'center' });
   doc.text('Estados del Sistema',  105, y + 15, { align: 'center' });
-
   y += 30;
 
-  // ── Sección: Check-ins rápidos ──
+  // Check-ins rápidos
   if (weekCheckins.length > 0) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(...ACCENT);
     doc.text('Check-ins Rápidos', 14, y);
     y += 7;
-
     doc.setDrawColor(200, 200, 200);
     doc.line(14, y, W - 14, y);
     y += 5;
 
     weekCheckins.forEach((item, i) => {
-      if (y > 260) { doc.addPage(); y = 20; }
-
+      if (y > 260) { doc.addPage(); drawHeader(); y = 46; }
       const bg = i % 2 === 0 ? [252, 252, 252] : [255, 255, 255];
       doc.setFillColor(...bg);
       doc.rect(12, y - 4, W - 24, 14, 'F');
-
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.setTextColor(...DARK);
-      const dateStr = item.date
-        ? format(parseISO(item.date + 'T00:00:00'), 'EEEE d MMM', { locale: es })
-        : format(new Date(item.created_date), 'EEEE d MMM', { locale: es });
-      doc.text(dateStr, 16, y + 2);
-
+      const d = safeParseDate(item.date || item.created_date);
+      doc.text(d ? format(d, 'EEEE d MMM', { locale: es }) : '', 16, y + 2);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...GRAY);
-      const estado = [item.nervous_system, item.emotion, item.mind].filter(Boolean).join(' · ');
+      const nsCfg = NS_CONFIG[item.nervous_system];
+      const estado = [nsCfg?.label, item.emotion, item.mind].filter(Boolean).join(' · ');
       doc.text(estado, 16, y + 8);
-
       y += 16;
     });
   }
-
   y += 6;
 
-  // ── Sección: Estados del Sistema ──
+  // Estados del Sistema
   if (weekSistema.length > 0) {
-    if (y > 220) { doc.addPage(); y = 20; }
-
+    if (y > 220) { doc.addPage(); drawHeader(); y = 46; }
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(...ACCENT);
     doc.text('Estados del Sistema', 14, y);
     y += 7;
-
     doc.setDrawColor(200, 200, 200);
     doc.line(14, y, W - 14, y);
     y += 5;
 
     weekSistema.forEach((item, i) => {
-      if (y > 260) { doc.addPage(); y = 20; }
-
+      if (y > 260) { doc.addPage(); drawHeader(); y = 46; }
       const bg = i % 2 === 0 ? [252, 252, 252] : [255, 255, 255];
       doc.setFillColor(...bg);
       doc.rect(12, y - 4, W - 24, 16, 'F');
-
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.setTextColor(...DARK);
-      const dateStr = item.date
-        ? format(parseISO(item.date + 'T00:00:00'), 'EEEE d MMM', { locale: es })
-        : format(new Date(item.created_date), 'EEEE d MMM', { locale: es });
-      doc.text(dateStr, 16, y + 2);
-
+      const d = safeParseDate(item.date || item.created_date);
+      doc.text(d ? format(d, 'EEEE d MMM', { locale: es }) : '', 16, y + 2);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...GRAY);
       doc.text(`${item.nuanceEmoji || ''} ${item.nuanceName || ''} · ${item.stateName || ''}`, 16, y + 8);
-
       const intensityLabel = ['', 'Leve', 'Moderado', 'Intenso'][item.intensity] || '';
       doc.setFontSize(8);
       doc.text(`Intensidad: ${intensityLabel}`, W - 30, y + 5, { align: 'right' });
-
       y += 18;
     });
   }
 
-  // ── Sin datos ──
   if (weekCheckins.length === 0 && weekSistema.length === 0) {
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(11);
@@ -194,7 +143,6 @@ function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
     doc.text('Sin registros esta semana.', W / 2, y + 20, { align: 'center' });
   }
 
-  // ── Footer ──
   const pageCount = doc.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
@@ -204,8 +152,7 @@ function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
     doc.text(`Generado ${format(now, "d MMM yyyy HH:mm", { locale: es })} · Página ${p}/${pageCount}`, W / 2, 292, { align: 'center' });
   }
 
-  const filename = `cultiva-reporte-${format(weekStart, 'yyyy-MM-dd')}.pdf`;
-  doc.save(filename);
+  doc.save(`cultiva-reporte-${format(weekStart, 'yyyy-MM-dd')}.pdf`);
 }
 
 // ─── Sistema data ──────────────────────────────────────────────────────────────
@@ -215,7 +162,7 @@ const SYSTEM_STATES = [
     id: 'high',
     name: 'Activación Alta',
     icon: '🔴',
-    color: '#FF6B6B',
+    color: '#D94A4A',
     activationLevel: 3,
     sensations: ['Tensión', 'Agitación', 'Prisa'],
     nuances: [
@@ -234,7 +181,7 @@ const SYSTEM_STATES = [
     id: 'regulated',
     name: 'Regulado',
     icon: '🟢',
-    color: '#6BCB77',
+    color: '#4A9D54',
     activationLevel: 2,
     sensations: ['Equilibrio', 'Energía estable', 'Claridad'],
     nuances: [
@@ -253,7 +200,7 @@ const SYSTEM_STATES = [
     id: 'low',
     name: 'Activación Baja',
     icon: '🔵',
-    color: '#4D96FF',
+    color: '#3A7BD5',
     activationLevel: 1,
     sensations: ['Pesadez', 'Lentitud', 'Niebla'],
     nuances: [
@@ -270,12 +217,12 @@ const SYSTEM_STATES = [
   },
 ];
 
-// ─── Sub-components (sin cambios de lógica) ───────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StateSelector({ onSelect }) {
   return (
     <div className="space-y-3">
-      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center mb-4">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest text-center mb-4">
         Antes de mover el cuerpo, escuchémoslo
       </p>
       {SYSTEM_STATES.map(state => (
@@ -293,7 +240,7 @@ function StateSelector({ onSelect }) {
             {state.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-foreground">{state.name}</p>
+            <p className="text-base font-semibold text-foreground">{state.name}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{state.sensations.join(' · ')}</p>
           </div>
           <div className="w-2 h-8 rounded-full flex-shrink-0" style={{ background: `${state.color}66` }} />
@@ -318,12 +265,12 @@ function IntensitySelector({ state, nuance, intensity, onChange, onConfirm, onBa
       >
         <span style={{ fontSize: '32px' }}>{nuance.emoji}</span>
         <div>
-          <p className="text-base font-bold text-foreground">{nuance.name}</p>
+          <p className="text-base font-semibold text-foreground">{nuance.name}</p>
           <p className="text-xs text-muted-foreground">{state.name}</p>
         </div>
       </div>
 
-      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest text-center">
         ¿Qué intensidad tiene?
       </p>
 
@@ -339,7 +286,7 @@ function IntensitySelector({ state, nuance, intensity, onChange, onConfirm, onBa
             }}
           >
             <div>
-              <p className="text-sm font-bold text-foreground">{lvl.label}</p>
+              <p className="text-sm font-semibold text-foreground">{lvl.label}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{lvl.desc}</p>
             </div>
             <div className="flex gap-1.5">
@@ -364,7 +311,7 @@ function IntensitySelector({ state, nuance, intensity, onChange, onConfirm, onBa
         </button>
         <button
           onClick={onConfirm}
-          className="flex-1 py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+          className="flex-1 py-3 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
           style={{ background: state.color }}
         >
           Ver adaptaciones
@@ -391,14 +338,14 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
       >
         <span style={{ fontSize: '36px' }}>{nuance.emoji}</span>
         <div>
-          <p className="text-base font-bold text-foreground">{nuance.name} · {state.name}</p>
+          <p className="text-base font-semibold text-foreground">{nuance.name} · {state.name}</p>
           <p className="text-xs text-muted-foreground">{intensityLabel} · Tu día adaptado</p>
         </div>
       </div>
 
-      <div className="rounded-2xl p-4" style={{ background: '#264653' }}>
-        <p className="text-xs font-bold mb-1.5" style={{ color: '#E9C46A' }}>💡 Para recordar</p>
-        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.9)' }}>
+      <div className="rounded-2xl p-4 bg-bark">
+        <p className="text-xs font-semibold mb-1.5 text-sand">💡 Para recordar</p>
+        <p className="text-sm leading-relaxed text-background/90">
           {nuance.learning}
         </p>
       </div>
@@ -407,8 +354,8 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
         {ADAPT_CONFIG.map(({ key, emoji, label }) => (
           <div key={key} className="rounded-2xl p-4 border bg-card" style={{ borderColor: 'var(--border)' }}>
             <p className="text-base mb-1.5">{emoji}</p>
-            <p className="text-xs font-bold text-foreground mb-1.5">{label}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">{state.adaptations[key]}</p>
+            <p className="text-xs font-semibold text-foreground mb-1.5">{label}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{state.adaptations[key]}</p>
           </div>
         ))}
       </div>
@@ -423,7 +370,7 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
         <button
           onClick={onSave}
           disabled={saving}
-          className="flex-1 py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="flex-1 py-3 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 disabled:opacity-60"
           style={{ background: state.color }}
         >
           {saving ? '...' : <><Check className="w-4 h-4" /> Guardar</>}
@@ -447,7 +394,7 @@ function SistemaComplete({ state, nuance, onReset }) {
         {nuance.emoji}
       </div>
       <div>
-        <p className="text-xl font-serif font-bold text-foreground">Check-in guardado</p>
+        <p className="text-xl font-serif text-foreground">Check-in guardado</p>
         <p className="text-sm text-muted-foreground mt-1">{nuance.name} · {state.name}</p>
       </div>
       <button
@@ -460,7 +407,7 @@ function SistemaComplete({ state, nuance, onReset }) {
   );
 }
 
-// ─── SistemaFlow — usa localStorage en lugar de base44 ────────────────────────
+// ─── SistemaFlow ──────────────────────────────────────────────────────────────
 
 function SistemaFlow({ userEmail }) {
   const [step,           setStep]          = useState('state');
@@ -476,9 +423,10 @@ function SistemaFlow({ userEmail }) {
   }
 
   function handleSave() {
+    if (!userEmail) return;
     setSaving(true);
     try {
-      lsCreate(LS_SISTEMA_KEY, {
+      lsCreate(LS_KEYS.SISTEMA, {
         stateId:     selectedState.id,
         stateName:   selectedState.name,
         stateColor:  selectedState.color,
@@ -486,12 +434,10 @@ function SistemaFlow({ userEmail }) {
         nuanceEmoji: selectedNuance.emoji,
         intensity,
         user_email:  userEmail,
-        date:        format(new Date(), 'yyyy-MM-dd'),
+        date:        todayKey(),
         completed:   true,
       });
       setDone(true);
-    } catch (e) {
-      console.error(e);
     } finally {
       setSaving(false);
     }
@@ -509,7 +455,11 @@ function SistemaFlow({ userEmail }) {
 
       {step === 'nuance' && selectedState && (
         <motion.div key="nuance" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
-          <NuanceWheel state={selectedState} selectedNuance={selectedNuance} onSelect={setSelectedNuance} />
+          <NuanceWheel
+            state={selectedState}
+            selectedNuance={selectedNuance}
+            onSelect={n => { setSelectedNuance(n); setIntensity(2); }}
+          />
           <div className="flex gap-3 mt-5">
             <button
               onClick={() => { setStep('state'); setSelectedState(null); setSelectedNuance(null); }}
@@ -520,7 +470,7 @@ function SistemaFlow({ userEmail }) {
             {selectedNuance && (
               <button
                 onClick={() => setStep('intensity')}
-                className="flex-1 py-3 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
+                className="flex-1 py-3 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
                 style={{ background: selectedState.color }}
               >
                 Continuar →
@@ -560,8 +510,6 @@ const TABS = [
   { id: 'sistema', label: 'Estado del Sistema' },
 ];
 
-const nervousLabels = { regulado: '🟢', activado: '🟡', colapsado: '🔴' };
-
 export default function Estado() {
   const { user: clerkUser } = useUser();
   const [activeTab, setActiveTab] = useState('checkin');
@@ -574,30 +522,36 @@ export default function Estado() {
 
   const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
 
-  // Cargar historial desde localStorage al montar o cuando cambia el email
   useEffect(() => {
-    const items = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 5);
+    if (!userEmail) return;
+    const items = lsFilter(LS_KEYS.CHECKINS, { user_email: userEmail }, 5);
     setHistory(items);
   }, [userEmail, done]);
 
-  async function handleComplete(data) {
+  function handleComplete(data) {
+    if (!userEmail) return;
     setSaving(true);
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const saved = lsCreate(LS_CHECKIN_KEY, { ...data, user_email: userEmail, date: today });
-    setCheckIn(saved);
-    setDone(true);
-    setSaving(false);
-    const items = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 5);
-    setHistory(items);
+    try {
+      const saved = lsCreate(LS_KEYS.CHECKINS, {
+        ...data,
+        user_email: userEmail,
+        date: todayKey(),
+      });
+      setCheckIn(saved);
+      setDone(true);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function resetCheckin() { setCheckIn(null); setDone(false); }
 
-  async function handleExportPDF() {
+  function handleExportPDF() {
+    if (!userEmail) return;
     setPdfLoading(true);
     try {
-      const allCheckins = lsFilter(LS_CHECKIN_KEY, userEmail ? { user_email: userEmail } : {}, 200);
-      const allSistema  = lsFilter(LS_SISTEMA_KEY,  userEmail ? { user_email: userEmail } : {}, 200);
+      const allCheckins = lsFilter(LS_KEYS.CHECKINS, { user_email: userEmail }, 200);
+      const allSistema  = lsFilter(LS_KEYS.SISTEMA,  { user_email: userEmail }, 200);
       generarPDFSemanal(allCheckins, allSistema, userEmail);
     } catch (e) {
       console.error('Error generando PDF:', e);
@@ -609,19 +563,17 @@ export default function Estado() {
 
   return (
     <div className="px-6 pt-12 pb-8">
-      {/* ── Header ── */}
-      <div className="mb-5 flex items-start justify-between">
+      <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Check-in</p>
           <h1 className="text-2xl font-serif text-foreground mt-0.5">Mi Estado</h1>
           <p className="text-sm text-muted-foreground mt-1">El núcleo de tu práctica neuro</p>
         </div>
 
-        {/* Botón PDF semanal */}
         <button
           onClick={handleExportPDF}
           disabled={pdfLoading}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors disabled:opacity-50"
+          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors disabled:opacity-50"
           title="Descargar reporte semanal PDF"
         >
           <FileDown className="w-4 h-4" />
@@ -629,8 +581,7 @@ export default function Estado() {
         </button>
       </div>
 
-      {/* ── Tabs ── */}
-      <div className="flex gap-1 p-1 rounded-2xl mb-6" style={{ background: 'var(--muted)' }}>
+      <div className="flex gap-1 p-1 rounded-2xl mb-6 bg-muted">
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -647,9 +598,7 @@ export default function Estado() {
         ))}
       </div>
 
-      {/* ── Contenido ── */}
       <AnimatePresence mode="wait">
-
         {activeTab === 'checkin' && (
           <motion.div
             key="checkin"
@@ -679,25 +628,26 @@ export default function Estado() {
                   Historial reciente
                 </h2>
                 <div className="space-y-2">
-                  {history.map(item => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{nervousLabels[item.nervous_system] || '⚪'}</span>
-                        <div>
-                          <p className="text-sm font-medium capitalize">{item.nervous_system}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{item.emotion} · {item.mind}</p>
+                  {history.map(item => {
+                    const cfg = NS_CONFIG[item.nervous_system];
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{cfg?.emoji || '⚪'}</span>
+                          <div>
+                            <p className="text-sm font-medium">{cfg?.label || item.nervous_system}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{item.emotion} · {item.mind}</p>
+                          </div>
                         </div>
+                        <span className="text-xs text-muted-foreground">
+                          {item.date ? format(new Date(item.date + 'T00:00:00'), 'd MMM', { locale: es }) : ''}
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {item.date
-                          ? format(new Date(item.date + 'T00:00:00'), 'd MMM', { locale: es })
-                          : ''}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -713,7 +663,6 @@ export default function Estado() {
             <SistemaFlow userEmail={userEmail} />
           </motion.div>
         )}
-
       </AnimatePresence>
     </div>
   );
