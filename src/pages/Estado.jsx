@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CheckInWizard from '@/components/neuro/CheckInWizard';
@@ -6,154 +5,13 @@ import DiagnosisCard from '@/components/neuro/DiagnosisCard';
 import NuanceWheel from '@/components/equilibrio/NuanceWheel';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, ArrowLeft, Check, FileDown } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
-import { LS_KEYS, lsGet, lsSet, lsCreate, lsFilter, todayKey, safeParseDate } from '@/lib/storage';
-import { NS_CONFIG, SYSTEM_STATE_MAP } from '@/lib/nervous-system';
-
-// ─── PDF generator ────────────────────────────────────────────────────────────
-
-function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
-  const doc      = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const W        = 210;
-  const now      = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd   = endOfWeek(now,   { weekStartsOn: 1 });
-
-  const fmtDate  = d => format(d, "d 'de' MMMM yyyy", { locale: es });
-
-  const inWeek = date => {
-    const d = safeParseDate(date);
-    if (!d) return false;
-    return isWithinInterval(d, { start: weekStart, end: weekEnd });
-  };
-
-  const weekCheckins = checkins.filter(c => inWeek(c.date || c.created_date));
-  const weekSistema  = sistemaCheckins.filter(c => inWeek(c.date || c.created_date));
-
-  const GREEN  = [107, 203, 119];
-  const DARK   = [30,  30,  30];
-  const GRAY   = [100, 100, 100];
-  const LIGHT  = [245, 245, 245];
-  const ACCENT = [38,  70,  83];
-
-  let y = 0;
-
-  function drawHeader() {
-    doc.setFillColor(...ACCENT);
-    doc.rect(0, 0, W, 38, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text('Cultiva Neura', 14, 14);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text('Reporte Semanal de Estado', 14, 21);
-    doc.text(`${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`, 14, 28);
-    if (userEmail) doc.text(userEmail, W - 14, 28, { align: 'right' });
-  }
-
-  drawHeader();
-  y = 46;
-
-  // Resumen numérico
-  doc.setFillColor(...LIGHT);
-  doc.roundedRect(10, y, W - 20, 22, 3, 3, 'F');
-  doc.setTextColor(...DARK);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text(`${weekCheckins.length}`, 30,  y + 9,  { align: 'center' });
-  doc.text(`${weekSistema.length}`,  105, y + 9,  { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...GRAY);
-  doc.text('Check-ins rápidos',    30,  y + 15, { align: 'center' });
-  doc.text('Estados del Sistema',  105, y + 15, { align: 'center' });
-  y += 30;
-
-  // Check-ins rápidos
-  if (weekCheckins.length > 0) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(...ACCENT);
-    doc.text('Check-ins Rápidos', 14, y);
-    y += 7;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, y, W - 14, y);
-    y += 5;
-
-    weekCheckins.forEach((item, i) => {
-      if (y > 260) { doc.addPage(); drawHeader(); y = 46; }
-      const bg = i % 2 === 0 ? [252, 252, 252] : [255, 255, 255];
-      doc.setFillColor(...bg);
-      doc.rect(12, y - 4, W - 24, 14, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(...DARK);
-      const d = safeParseDate(item.date || item.created_date);
-      doc.text(d ? format(d, 'EEEE d MMM', { locale: es }) : '', 16, y + 2);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...GRAY);
-      const nsCfg = NS_CONFIG[item.nervous_system];
-      const estado = [nsCfg?.label, item.emotion, item.mind].filter(Boolean).join(' · ');
-      doc.text(estado, 16, y + 8);
-      y += 16;
-    });
-  }
-  y += 6;
-
-  // Estados del Sistema
-  if (weekSistema.length > 0) {
-    if (y > 220) { doc.addPage(); drawHeader(); y = 46; }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(...ACCENT);
-    doc.text('Estados del Sistema', 14, y);
-    y += 7;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, y, W - 14, y);
-    y += 5;
-
-    weekSistema.forEach((item, i) => {
-      if (y > 260) { doc.addPage(); drawHeader(); y = 46; }
-      const bg = i % 2 === 0 ? [252, 252, 252] : [255, 255, 255];
-      doc.setFillColor(...bg);
-      doc.rect(12, y - 4, W - 24, 16, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(...DARK);
-      const d = safeParseDate(item.date || item.created_date);
-      doc.text(d ? format(d, 'EEEE d MMM', { locale: es }) : '', 16, y + 2);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...GRAY);
-      doc.text(`${item.nuanceEmoji || ''} ${item.nuanceName || ''} · ${item.stateName || ''}`, 16, y + 8);
-      const intensityLabel = ['', 'Leve', 'Moderado', 'Intenso'][item.intensity] || '';
-      doc.setFontSize(8);
-      doc.text(`Intensidad: ${intensityLabel}`, W - 30, y + 5, { align: 'right' });
-      y += 18;
-    });
-  }
-
-  if (weekCheckins.length === 0 && weekSistema.length === 0) {
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(11);
-    doc.setTextColor(...GRAY);
-    doc.text('Sin registros esta semana.', W / 2, y + 20, { align: 'center' });
-  }
-
-  const pageCount = doc.getNumberOfPages();
-  for (let p = 1; p <= pageCount; p++) {
-    doc.setPage(p);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(180, 180, 180);
-    doc.text(`Generado ${format(now, "d MMM yyyy HH:mm", { locale: es })} · Página ${p}/${pageCount}`, W / 2, 292, { align: 'center' });
-  }
-
-  doc.save(`cultiva-reporte-${format(weekStart, 'yyyy-MM-dd')}.pdf`);
-}
+import { LS_KEYS, lsCreate, lsFilter, todayKey } from '@/lib/storage';
+import { NS_CONFIG } from '@/lib/nervous-system';
+import { generarPDFSemanal } from '@/lib/pdf';
 
 // ─── Sistema data ──────────────────────────────────────────────────────────────
 

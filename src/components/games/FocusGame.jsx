@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -97,7 +97,7 @@ export default function FocusGame() {
               className="flex items-center justify-center h-32"
             >
               <p
-                className="text-5xl font-serif font-bold capitalize"
+                className="text-5xl font-serif capitalize"
                 style={{ color: COLOR_MAP[item.color] }}
               >
                 {item.word}

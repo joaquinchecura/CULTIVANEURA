@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BarChart3 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -68,7 +68,7 @@ function TechniqueListCard({ tech, completed, onPlay }) {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <p className="text-sm font-bold text-foreground">{tech.name}</p>
+            <p className="text-sm font-semibold text-foreground">{tech.name}</p>
             {cat && (
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
@@ -92,7 +92,7 @@ function TechniqueListCard({ tech, completed, onPlay }) {
             background: completed ? tech.color : 'transparent',
           }}
         >
-          {completed && <span className="text-white text-xs font-bold">✓</span>}
+          {completed && <span className="text-white text-xs font-semibold">✓</span>}
         </div>
       </div>
     </motion.div>
@@ -187,7 +187,7 @@ export default function RuedaEmocional() {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div className="text-center">
-          <p className="text-sm font-bold text-foreground tracking-wide">RUEDA EMOCIONAL</p>
+          <p className="text-sm font-semibold text-foreground tracking-wide">RUEDA EMOCIONAL</p>
           <p className="text-xs text-muted-foreground">{STEP_TITLES[step]}</p>
         </div>
         <button onClick={() => navigate('/rueda-dashboard')} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted">
@@ -223,7 +223,7 @@ export default function RuedaEmocional() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
             >
-              <p className="text-center text-2xl font-serif font-bold text-foreground mb-1">
+              <p className="text-center text-2xl font-serif text-foreground mb-1">
                 ¿Cómo te sentís ahora?
               </p>
               <p className="text-center text-sm text-muted-foreground mb-4">
@@ -245,7 +245,7 @@ export default function RuedaEmocional() {
                   >
                     <span style={{ fontSize: '20px' }}>{e.emoji}</span>
                     <span
-                      className="text-[9px] font-semibold"
+                      className="text-[10px] font-semibold"
                       style={{ color: selectedId === e.id ? e.color : 'var(--muted-foreground)' }}
                     >
                       {e.name}
@@ -272,12 +272,12 @@ export default function RuedaEmocional() {
                 >
                   {emotion.emoji}
                 </div>
-                <p className="text-2xl font-serif font-bold text-foreground">{emotion.name}</p>
+                <p className="text-2xl font-serif text-foreground">{emotion.name}</p>
                 <p className="text-sm text-muted-foreground text-center">{emotion.description}</p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest text-center">
                   ¿Qué intensidad?
                 </p>
                 {emotion.intensities.map((label, i) => (
@@ -306,7 +306,7 @@ export default function RuedaEmocional() {
 
               <Button
                 onClick={handleContinue}
-                className="w-full rounded-2xl py-6 text-white font-bold"
+                className="w-full rounded-2xl py-6 text-white font-semibold"
                 style={{ background: emotion.color }}
               >
                 Ver técnicas sugeridas →
@@ -330,14 +330,14 @@ export default function RuedaEmocional() {
               >
                 <span style={{ fontSize: '40px' }}>{emotion.emoji}</span>
                 <div>
-                  <p className="text-lg font-bold text-foreground">{emotion.name}</p>
+                  <p className="text-lg font-semibold text-foreground">{emotion.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {emotion.intensities[intensity]} · {['Suave', 'Moderada', 'Intensa'][intensity]}
                   </p>
                 </div>
               </div>
 
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 Técnicas recomendadas
               </p>
 
@@ -357,7 +357,7 @@ export default function RuedaEmocional() {
               <div className="space-y-2 pt-2">
                 <Button
                   onClick={() => handleSave(completedTechnique)}
-                  className="w-full rounded-2xl py-5 text-white font-bold"
+                  className="w-full rounded-2xl py-5 text-white font-semibold"
                   style={{ background: emotion.color }}
                 >
                   {completedTechnique ? '✓ Guardar con técnica' : 'Guardar emoción'}

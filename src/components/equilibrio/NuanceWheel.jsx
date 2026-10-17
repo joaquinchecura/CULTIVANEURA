@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 /**
  * NuanceWheel — presentational component for selecting emotional nuances.
@@ -21,7 +21,7 @@ export default function NuanceWheel({ state, selectedNuance, onSelect }) {
         >
           <span style={{ fontSize: '2.5rem' }}>{state.icon}</span>
         </div>
-        <h2 className="text-xl font-bold text-foreground">{state.name}</h2>
+        <h2 className="text-xl font-serif text-foreground">{state.name}</h2>
         <p className="text-sm text-muted-foreground mt-1.5">
           {state.sensations.join(' · ')}
         </p>
@@ -61,7 +61,7 @@ export default function NuanceWheel({ state, selectedNuance, onSelect }) {
               <span style={{ fontSize: '2.2rem', marginBottom: '2px' }}>
                 {nuance.emoji}
               </span>
-              <span className="text-[11px] font-bold">
+              <span className="text-xs font-medium">
                 {nuance.name}
               </span>
             </button>
@@ -76,10 +76,7 @@ export default function NuanceWheel({ state, selectedNuance, onSelect }) {
           style={{ background: 'var(--card)', borderColor: `${state.color}40` }}
         >
           <span className="text-2xl mb-2 block">💡</span>
-          <p
-            className="text-sm text-muted-foreground leading-relaxed italic"
-            style={{ fontStyle: 'italic' }}
-          >
+          <p className="text-sm text-muted-foreground leading-relaxed italic">
             "{selectedNuance.learning}"
           </p>
         </div>

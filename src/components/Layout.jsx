@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from 'react-router-dom';
+﻿import { Outlet, NavLink } from 'react-router-dom';
 import { Home, Zap, BookOpen, BarChart2, Settings, Gamepad2, User, LogOut, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useClerk, useUser } from '@clerk/clerk-react';
@@ -106,7 +106,7 @@ export default function Layout() {
                   <div className={cn('p-1.5 rounded-lg transition-all', isActive ? 'bg-primary/10' : '')}>
                     <Icon size={19} strokeWidth={isActive ? 2.5 : 1.8} />
                   </div>
-                  <span className="text-[9px] font-medium tracking-wide">{label}</span>
+                  <span className="text-[10px] font-medium tracking-wide">{label}</span>
                 </>
               )}
             </NavLink>

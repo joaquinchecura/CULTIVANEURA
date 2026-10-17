@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -87,7 +87,7 @@ export default function StressInoculationGame() {
         <div className="w-full space-y-5">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">✓ {score} · ✗ {errors}</span>
-            <span className={`text-2xl font-serif font-bold ${urgency}`}>{timeLeft}s</span>
+            <span className={`text-2xl font-serif ${urgency}`}>{timeLeft}s</span>
           </div>
           <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
             <motion.div className={`h-full rounded-full transition-all duration-1000 ${timeLeft < 15 ? 'bg-rose-500' : 'bg-orange-500'}`}

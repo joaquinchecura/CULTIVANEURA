@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const CARDS = [
@@ -101,7 +101,7 @@ function Card({ card }) {
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-4 p-5 text-left" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl" style={{ background: card.bg }}>{card.emoji}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground">{card.title}</p>
+          <p className="text-sm font-semibold text-foreground">{card.title}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{card.description}</p>
         </div>
         {open ? <ChevronUp className="w-4 h-4 flex-shrink-0 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 flex-shrink-0 text-muted-foreground" />}
@@ -125,9 +125,9 @@ function Micro({ ml, index }) {
     <div className="rounded-2xl overflow-hidden" style={{ background: '#264653' }}>
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-3 p-4 text-left" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#E9C46A20' }}>
-          <span className="text-sm font-bold" style={{ color: '#E9C46A' }}>{index + 1}</span>
+          <span className="text-sm font-semibold" style={{ color: '#E9C46A' }}>{index + 1}</span>
         </div>
-        <p className="flex-1 text-sm font-bold" style={{ color: 'white' }}>{ml.title}</p>
+        <p className="flex-1 text-sm font-semibold" style={{ color: 'white' }}>{ml.title}</p>
         {open ? <ChevronUp className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.5)' }} /> : <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.5)' }} />}
       </button>
       {open && (
@@ -135,11 +135,11 @@ function Micro({ ml, index }) {
           <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>{ml.content}</p>
           {ml.highlights.map((h, i) => (
             <div key={i} className="flex gap-2">
-              <span className="text-sm font-bold flex-shrink-0" style={{ color: '#E9C46A' }}>{h.label}</span>
+              <span className="text-sm font-semibold flex-shrink-0" style={{ color: '#E9C46A' }}>{h.label}</span>
               {h.desc && <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>{h.desc}</span>}
             </div>
           ))}
-          <p className="text-sm font-bold" style={{ color: '#E9C46A' }}>{ml.closing}</p>
+          <p className="text-sm font-semibold" style={{ color: '#E9C46A' }}>{ml.closing}</p>
         </div>
       )}
     </div>
@@ -150,8 +150,8 @@ export default function SistemaNerviosoSection() {
   return (
     <div className="px-4 py-4 space-y-3">
       <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, #264653, #E07A5F)' }}>
-        <p className="text-xs font-bold mb-2" style={{ color: '#E9C46A', letterSpacing: '2px', textTransform: 'uppercase' }}>⚡ Sistema Nervioso</p>
-        <p className="text-lg font-bold mb-2" style={{ color: 'white' }}>El sistema que lo regula todo</p>
+        <p className="text-xs font-semibold mb-2" style={{ color: '#E9C46A', letterSpacing: '2px', textTransform: 'uppercase' }}>⚡ Sistema Nervioso</p>
+        <p className="text-lg font-semibold mb-2" style={{ color: 'white' }}>El sistema que lo regula todo</p>
         <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
           Tu rendimiento, tu recuperación y tu estado emocional dependen directamente del equilibrio entre el sistema simpático y parasimpático.
         </p>
@@ -161,9 +161,9 @@ export default function SistemaNerviosoSection() {
           ))}
         </div>
       </div>
-      <p className="text-xs font-bold text-foreground uppercase tracking-widest">Conceptos clave</p>
+      <p className="text-xs font-semibold text-foreground uppercase tracking-widest">Conceptos clave</p>
       {CARDS.map(c => <Card key={c.id} card={c} />)}
-      <p className="text-xs font-bold text-foreground uppercase tracking-widest pt-2">Microaprendizajes</p>
+      <p className="text-xs font-semibold text-foreground uppercase tracking-widest pt-2">Microaprendizajes</p>
       {MICROLEARNINGS.map((ml, i) => <Micro key={i} ml={ml} index={i} />)}
       <div style={{ height: '8px' }} />
     </div>

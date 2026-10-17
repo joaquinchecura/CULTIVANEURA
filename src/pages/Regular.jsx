@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { X, Clock, Wind, Zap, Moon, Dumbbell, Brain, Droplets, Sun, Heart } from 'lucide-react';
@@ -183,7 +183,7 @@ export default function Regular() {
                   <p className="text-sm font-semibold text-foreground">{item.title}</p>
                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-white/70"
                     style={{ color: item.color }}>{item.tag}</span>
-                  {completed.has(item.id) && <span className="text-[10px] text-emerald-600 font-bold">✓ Hecho</span>}
+                  {completed.has(item.id) && <span className="text-[10px] text-emerald-600 font-semibold">✓ Hecho</span>}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <Clock size={11} className="text-muted-foreground" />
@@ -234,11 +234,11 @@ export default function Regular() {
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{selected.description}</p>
 
               <div className="bg-muted rounded-2xl p-4 mb-5">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Instrucciones</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Instrucciones</p>
                 <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selected.instructions}</p>
               </div>
 
-              <Button className="w-full rounded-xl text-white font-bold" style={{ background: selected.color }}
+              <Button className="w-full rounded-xl text-white font-semibold" style={{ background: selected.color }}
                 onClick={() => handleComplete(selected.id)}>
                 ✓ Completar técnica
               </Button>

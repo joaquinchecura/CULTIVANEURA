@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { format, subDays } from 'date-fns';
@@ -101,7 +101,7 @@ export default function RuedaEmocionalDashboard() {
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <p className="text-sm font-bold tracking-widest text-foreground">MI MAPA EMOCIONAL</p>
+        <p className="text-sm font-semibold tracking-widest text-foreground">MI MAPA EMOCIONAL</p>
         <button onClick={() => navigate('/rueda-emocional')} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted">
           <Plus className="w-5 h-5 text-foreground" />
         </button>
@@ -132,8 +132,8 @@ export default function RuedaEmocionalDashboard() {
             { v: completedTechniques,   l: 'TÉCNICAS' },
           ].map((s, i) => (
             <div key={i} className="bg-card rounded-2xl p-3 flex flex-col items-center border border-border">
-              <span className="text-2xl font-bold text-foreground">{s.v}</span>
-              <span className="text-[9px] font-bold text-muted-foreground tracking-widest mt-1">{s.l}</span>
+              <span className="text-2xl font-semibold text-foreground">{s.v}</span>
+              <span className="text-[10px] font-semibold text-muted-foreground tracking-widest mt-1">{s.l}</span>
             </div>
           ))}
         </div>
@@ -147,8 +147,8 @@ export default function RuedaEmocionalDashboard() {
               {dominantEmotion.emoji}
             </div>
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Emoción dominante</p>
-              <p className="text-xl font-bold text-foreground">{dominantEmotion.name}</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Emoción dominante</p>
+              <p className="text-xl font-semibold text-foreground">{dominantEmotion.name}</p>
               <p className="text-xs text-muted-foreground">{emotionCounts[dominantId]} registros este período</p>
             </div>
           </motion.div>
@@ -157,7 +157,7 @@ export default function RuedaEmocionalDashboard() {
         {/* Radar */}
         {recent.length > 0 && (
           <div className="bg-card rounded-2xl p-4 border border-border">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Distribución emocional</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Distribución emocional</p>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData} outerRadius={75}>
                 <PolarGrid stroke="var(--border)" />
@@ -170,7 +170,7 @@ export default function RuedaEmocionalDashboard() {
 
         {/* Bar chart */}
         <div className="bg-card rounded-2xl p-4 border border-border">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Últimos 7 días</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Últimos 7 días</p>
           <ResponsiveContainer width="100%" height={110}>
             <BarChart data={barData} barSize={20}>
               <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
@@ -189,7 +189,7 @@ export default function RuedaEmocionalDashboard() {
         <div className="rounded-2xl p-5 bg-foreground">
           <div className="flex items-center gap-2 mb-2">
             <span>💡</span>
-            <span className="text-xs font-bold text-yellow-300 uppercase tracking-widest">Insight</span>
+            <span className="text-xs font-semibold text-yellow-300 uppercase tracking-widest">Insight</span>
           </div>
           <p className="text-sm text-white/90 leading-relaxed">{getInsight(dominantId, recent.length)}</p>
         </div>
@@ -197,7 +197,7 @@ export default function RuedaEmocionalDashboard() {
         {/* Recent history */}
         {recent.length > 0 && (
           <div className="bg-card rounded-2xl p-4 border border-border">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Historial reciente</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Historial reciente</p>
             <div className="space-y-2">
               {recent.slice(0, 8).map((c, i) => (
                 <div key={i} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
@@ -222,10 +222,10 @@ export default function RuedaEmocionalDashboard() {
         {checkins.length === 0 && (
           <div className="bg-card rounded-2xl p-8 text-center border border-border">
             <p className="text-4xl mb-3">🎯</p>
-            <p className="text-lg font-bold text-foreground mb-2">Sin registros aún</p>
+            <p className="text-lg font-semibold text-foreground mb-2">Sin registros aún</p>
             <p className="text-sm text-muted-foreground mb-5">Hacé tu primer check-in emocional</p>
             <button onClick={() => navigate('/rueda-emocional')}
-              className="px-6 py-3 rounded-2xl bg-foreground text-background text-sm font-bold">
+              className="px-6 py-3 rounded-2xl bg-foreground text-background text-sm font-semibold">
               Comenzar
             </button>
           </div>
@@ -234,7 +234,7 @@ export default function RuedaEmocionalDashboard() {
         {/* CTA */}
         {checkins.length > 0 && (
           <button onClick={() => navigate('/rueda-emocional')}
-            className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 bg-foreground text-background text-sm font-bold">
+            className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 bg-foreground text-background text-sm font-semibold">
             <Plus className="w-4 h-4" /> Nuevo Check-in
           </button>
         )}

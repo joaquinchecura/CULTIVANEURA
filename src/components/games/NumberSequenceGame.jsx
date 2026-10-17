@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -107,7 +107,7 @@ export default function NumberSequenceGame() {
           <p className="text-xs text-muted-foreground uppercase tracking-widest">Reproducí la secuencia</p>
           <div className="flex gap-2 min-h-[36px]">
             {sequence.map((_, i) => (
-              <div key={i} className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-lg font-mono font-bold transition-all ${
+              <div key={i} className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-lg font-mono font-semibold transition-all ${
                 i < input.length
                   ? wrong ? 'border-rose-400 bg-rose-50 text-rose-600' : 'border-cyan-400 bg-cyan-50 text-cyan-700'
                   : 'border-border bg-muted text-transparent'

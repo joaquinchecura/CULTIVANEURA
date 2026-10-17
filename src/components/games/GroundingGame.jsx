@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -67,7 +67,7 @@ export default function GroundingGame() {
             <div className="flex items-center gap-3 mb-4">
               <span className="text-3xl">{step.emoji}</span>
               <div>
-                <p className={`font-bold text-lg ${step.text}`}>{step.number} cosas para {step.sense}</p>
+                <p className={`font-semibold text-lg ${step.text}`}>{step.number} cosas para {step.sense}</p>
                 <p className="text-sm text-muted-foreground">{step.instruction}</p>
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function GroundingGame() {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex items-center gap-2 text-sm text-foreground"
                 >
-                  <span className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                  <span className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center text-xs font-semibold">{i + 1}</span>
                   {item}
                 </motion.div>
               ))}
