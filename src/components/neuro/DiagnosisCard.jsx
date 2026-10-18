@@ -20,7 +20,7 @@ const diagnoses = {
     title: 'Tu sistema nervioso está regulado',
     body: 'Estás en un estado óptimo para aprender, conectar y rendir. Es el momento ideal para trabajar en objetivos exigentes.',
     cta: 'Explorar lecciones',
-    ctaTo: '/aprender',
+    ctaTo: '/regular',
   },
   activado: {
     title: 'Alta activación detectada',
