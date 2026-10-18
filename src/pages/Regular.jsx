@@ -130,6 +130,7 @@ export default function Regular() {
   const filtered = INTERVENTIONS.filter(i =>
     filter === 'todos' || i.target_state === 'todos' || i.target_state === filter
   );
+  const SelectedIcon = selected?.icon;
 
   function handleComplete(id) {
     setCompleted(prev => new Set([...prev, id]));
@@ -164,7 +165,9 @@ export default function Regular() {
       </div>
 
       <div className="space-y-3">
-        {filtered.map((item, i) => (
+        {filtered.map((item, i) => {
+          const Icon = item.icon;
+          return (
           <motion.button key={item.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -176,7 +179,7 @@ export default function Regular() {
           >
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/70">
-                <item.icon size={20} style={{ color: item.color }} />
+                <Icon size={20} style={{ color: item.color }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -195,7 +198,8 @@ export default function Regular() {
               <span className="text-muted-foreground text-sm flex-shrink-0">→</span>
             </div>
           </motion.button>
-        ))}
+          );
+        })}
       </div>
 
       {/* Detail modal */}
@@ -214,7 +218,7 @@ export default function Regular() {
                 <div className="flex items-center gap-3 flex-1 pr-4">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ background: `${selected.color}20` }}>
-                    <selected.icon size={22} style={{ color: selected.color }} />
+                    <SelectedIcon size={22} style={{ color: selected.color }} />
                   </div>
                   <div>
                     <h2 className="font-serif text-xl text-foreground">{selected.title}</h2>
