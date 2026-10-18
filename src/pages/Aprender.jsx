@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useSearchParams } from 'react-router-dom';
@@ -38,20 +39,16 @@ export default function Aprender() {
     <div className="pb-8">
 
 {lessonId && (
-  <div className="px-6 mb-4 p-4 rounded-2xl bg-primary/5 border border-primary/20">
-    <p className="text-sm text-foreground">Lección seleccionada: <strong>{lessonId}</strong></p>
-    <p className="text-xs text-muted-foreground mt-1">(Detalle pendiente de implementar)</p>
+  <div className="mx-6 mt-6 mb-2 p-5 rounded-3xl bg-primary/10 border border-primary/20 flex items-start gap-4">
+    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+      <BookOpen size={20} className="text-primary" />
+    </div>
+    <div>
+      <p className="text-sm font-semibold text-foreground">Lección abierta desde tu progreso</p>
+      <p className="text-xs text-muted-foreground mt-1">ID: {lessonId}. (El contenido detallado se está cargando...)</p>
+    </div>
   </div>
 )}
-
-      {/* Header */}
-      <div className="px-6 pt-12 pb-4">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-          Biblioteca
-        </p>
-        <h1 className="text-2xl font-serif text-foreground mt-0.5">Aprender</h1>
-        <p className="text-sm text-muted-foreground mt-1">Neurociencia aplicada a tu vida</p>
-      </div>
 
       {/* Tab bar */}
       <div className="flex gap-2 overflow-x-auto pb-2 px-6 mb-2 no-scrollbar">

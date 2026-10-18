@@ -33,41 +33,41 @@ export default function NuanceWheel({ state, selectedNuance, onSelect }) {
       </p>
 
       {/* ── Nuance circles ── */}
-      <div className="flex justify-center gap-5">
-        {state.nuances.map(nuance => {
-          const isSelected = selectedNuance?.name === nuance.name;
-          return (
-            <button
-              key={nuance.name}
-              onClick={() => onSelect(nuance)}
-              className="transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{
-                width: '95px',
-                height: '95px',
-                borderRadius: '50%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: isSelected ? state.color : 'var(--card)',
-                color: isSelected ? 'white' : 'var(--foreground)',
-                boxShadow: isSelected
-                  ? '0 6px 20px rgba(0,0,0,0.15)'
-                  : '0 4px 12px rgba(0,0,0,0.08)',
-                border: `3px solid ${isSelected ? state.color : 'var(--border)'}`,
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontSize: '2.2rem', marginBottom: '2px' }}>
-                {nuance.emoji}
-              </span>
-              <span className="text-xs font-medium">
-                {nuance.name}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ── Nuance circles ── */}
+<div className="flex justify-center gap-6">
+  {state.nuances.map(nuance => {
+    const isSelected = selectedNuance?.name === nuance.name;
+    return (
+      <button
+        key={nuance.name}
+        onClick={() => onSelect(nuance)}
+        className={cn(
+          "transition-all duration-300 focus:outline-none flex flex-col items-center gap-3",
+          isSelected ? "scale-110" : "opacity-70 hover:opacity-100 hover:scale-105"
+        )}
+      >
+        {/* Círculo con color de fondo y borde */}
+        <div 
+          className="w-20 h-20 rounded-full flex items-center justify-center border-2 shadow-sm transition-colors"
+          style={{
+            background: isSelected ? state.color : 'var(--card)',
+            borderColor: isSelected ? state.color : 'var(--border)',
+            color: isSelected ? 'white' : 'var(--muted-foreground)',
+          }}
+        >
+          {/* Acá podés mapear el emoji a un ícono de Lucide si querés, 
+              o dejar el emoji pero con tamaño normal */}
+          <span className="text-3xl">{nuance.emoji}</span>
+        </div>
+        
+        {/* Texto debajo del círculo */}
+        <span className={cn("text-xs font-semibold", isSelected ? "text-foreground" : "text-muted-foreground")}>
+          {nuance.name}
+        </span>
+      </button>
+    );
+  })}
+</div>
 
       {/* ── Micro-learning card (shown only when a nuance is selected) ── */}
       {selectedNuance && (

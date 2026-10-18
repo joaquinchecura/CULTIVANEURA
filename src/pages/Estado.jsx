@@ -4,7 +4,7 @@ import CheckInWizard from '@/components/neuro/CheckInWizard';
 import DiagnosisCard from '@/components/neuro/DiagnosisCard';
 import NuanceWheel from '@/components/equilibrio/NuanceWheel';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, ArrowLeft, Check, FileDown } from 'lucide-react';
+import { RotateCcw, ArrowLeft, Check, FileDown, TrendingUp, AlertCircle, ShieldCheck, BatteryLow } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useUser } from '@clerk/clerk-react';
@@ -19,8 +19,9 @@ const SYSTEM_STATES = [
   {
     id: 'high',
     name: 'Activación Alta',
-    icon: '🔴',
-    color: '#D94A4A',
+    icon: <AlertCircle size={24} />, // 👈 Usamos ícono de Lucide
+    color: '#D94A4A', // Rojo un poco más apagado
+    bgSoft: 'bg-rose-50 text-rose-700',
     activationLevel: 3,
     sensations: ['Tensión', 'Agitación', 'Prisa'],
     nuances: [
@@ -38,8 +39,9 @@ const SYSTEM_STATES = [
   {
     id: 'regulated',
     name: 'Regulado',
-    icon: '🟢',
-    color: '#4A9D54',
+    icon: <ShieldCheck size={24} />, // 👈 Ícono de Lucide
+    color: '#4A9D54', // Verde NEURA
+    bgSoft: 'bg-emerald-50 text-emerald-700',
     activationLevel: 2,
     sensations: ['Equilibrio', 'Energía estable', 'Claridad'],
     nuances: [
@@ -57,8 +59,9 @@ const SYSTEM_STATES = [
   {
     id: 'low',
     name: 'Activación Baja',
-    icon: '🔵',
-    color: '#3A7BD5',
+    icon: <BatteryLow size={24} />, // 👈 Ícono de Lucide
+    color: '#8C7B6B', // 👈 Un tono "Bark" (marrón grisáceo) en vez de azul
+    bgSoft: 'bg-stone-100 text-stone-700',
     activationLevel: 1,
     sensations: ['Pesadez', 'Lentitud', 'Niebla'],
     nuances: [
@@ -201,12 +204,14 @@ function AdaptationSummary({ state, nuance, intensity, onSave, onBack, saving })
         </div>
       </div>
 
-      <div className="rounded-2xl p-4 bg-bark">
-        <p className="text-xs font-semibold mb-1.5 text-sand">💡 Para recordar</p>
-        <p className="text-sm leading-relaxed text-background/90">
-          {nuance.learning}
-        </p>
-      </div>
+      <div className="rounded-2xl p-4 bg-emerald-50 border border-emerald-100"> {/* 👈 Fondo sutil */}
+  <p className="text-xs font-semibold mb-1.5 text-emerald-700 flex items-center gap-1.5">
+    <Lightbulb size={14} /> Para recordar
+  </p>
+  <p className="text-sm leading-relaxed text-emerald-900/80">
+    {nuance.learning}
+  </p>
+</div>
 
       <div className="grid grid-cols-2 gap-3">
         {ADAPT_CONFIG.map(({ key, emoji, label }) => (
@@ -267,18 +272,33 @@ function SistemaComplete({ state, nuance, onReset }) {
 
 // ─── SistemaFlow ──────────────────────────────────────────────────────────────
 
-function SistemaFlow({ userEmail }) {
-  const [step,           setStep]          = useState('state');
-  const [selectedState,  setSelectedState] = useState(null);
+function SistemaFlow({ userEmail, initialNervousSystem }) {
+  // Mapeamos el estado del check-in rápido (regulado, activado, colapsado) 
+  // al estado del sistema (high, regulated, low)
+  const initialSystemState = initialNervousSystem 
+    ? SYSTEM_STATES.find(s => {
+        if (initialNervousSystem === 'regulado') return s.id === 'regulated';
+        if (initialNervousSystem === 'activado') return s.id === 'high';
+        if (initialNervousSystem === 'colapsado') return s.id === 'low';
+        return false;
+      })
+    : null;
+
+  const [step,           setStep]          = useState(initialSystemState ? 'nuance' : 'state');
+  const [selectedState,  setSelectedState] = useState(initialSystemState);
   const [selectedNuance, setSelectedNuance]= useState(null);
   const [intensity,      setIntensity]     = useState(2);
   const [saving,         setSaving]        = useState(false);
   const [done,           setDone]          = useState(false);
 
   function reset() {
-    setStep('state'); setSelectedState(null);
-    setSelectedNuance(null); setIntensity(2); setDone(false);
+    setStep(initialSystemState ? 'nuance' : 'state'); 
+    setSelectedState(initialSystemState);
+    setSelectedNuance(null); 
+    setIntensity(2); 
+    setDone(false);
   }
+  // ... el resto del componente sigue igual (handleSave, etc.)
 
   function handleSave() {
     if (!userEmail) return;
@@ -371,21 +391,28 @@ const TABS = [
 export default function Estado() {
   const { user: clerkUser } = useUser();
   const [activeTab, setActiveTab] = useState('checkin');
-
+  const [showSystemFlow, setShowSystemFlow] = useState(false);
   const [checkIn,  setCheckIn]  = useState(null);
   const [saving,   setSaving]   = useState(false);
   const [done,     setDone]     = useState(false);
   const [history,  setHistory]  = useState([]);
   const [pdfLoading, setPdfLoading] = useState(false);
-
+  const [lastCheckin, setLastCheckin] = useState(null);
   const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
 
   useEffect(() => {
     if (!userEmail) return;
     const items = lsFilter(LS_KEYS.CHECKINS, { user_email: userEmail }, 5);
     setHistory(items);
+    
+    // 👇 NUEVO: Guardamos el último check-in rápido
+    if (items.length > 0) {
+      setLastCheckin(items[0]);
+    } else {
+      setLastCheckin(null);
+    }
   }, [userEmail, done]);
-
+  
   function handleComplete(data) {
     if (!userEmail) return;
     setSaving(true);
@@ -486,41 +513,88 @@ export default function Estado() {
                   Historial reciente
                 </h2>
                 <div className="space-y-2">
-                  {history.map(item => {
-                    const cfg = NS_CONFIG[item.nervous_system];
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{cfg?.emoji || '⚪'}</span>
-                          <div>
-                            <p className="text-sm font-medium">{cfg?.label || item.nervous_system}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{item.emotion} · {item.mind}</p>
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {item.date ? format(new Date(item.date + 'T00:00:00'), 'd MMM', { locale: es }) : ''}
-                        </span>
-                      </div>
-                    );
-                  })}
+                {history.map(item => {
+  const cfg = NS_CONFIG[item.nervous_system];
+  return (
+    <div key={item.id} className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3">
+      <div className="flex items-center gap-3">
+        {/* Ícono del estado en vez de emoji */}
+        <div className={cn("w-8 h-8 rounded-full flex items-center justify-center", cfg?.bgSoft)}>
+          {item.nervous_system === 'regulado' ? <ShieldCheck size={16}/> : item.nervous_system === 'activado' ? <AlertCircle size={16}/> : <BatteryLow size={16}/>}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">{cfg?.label || item.nervous_system}</p>
+          <p className="text-xs text-muted-foreground capitalize">
+            {EMOTION_LABELS[item.emotion] || item.emotion} · {MIND_LABELS[item.mind] || item.mind}
+          </p>
+        </div>
+      </div>
+      <span className="text-xs text-muted-foreground">
+        {item.date ? format(new Date(item.date + 'T00:00:00'), 'd MMM', { locale: es }) : ''}
+      </span>
+    </div>
+  );
+})}
                 </div>
               </motion.div>
             )}
           </motion.div>
         )}
 
-        {activeTab === 'sistema' && (
-          <motion.div
-            key="sistema"
-            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}
+{activeTab === 'sistema' && (
+  <motion.div
+    key="sistema"
+    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}
+  >
+    {!showSystemFlow && lastCheckin ? (
+      // ── VISTA 1: Resumen basado en el último check-in ──
+      <div className="space-y-4">
+        <div className="bg-card border border-border rounded-3xl p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${NS_CONFIG[lastCheckin.nervous_system]?.bgSoft}`}>
+              <span className="text-xl">{NS_CONFIG[lastCheckin.nervous_system]?.emoji}</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Basado en tu último check-in</p>
+              <p className="text-xs text-muted-foreground">
+                {NS_CONFIG[lastCheckin.nervous_system]?.label} · {lastCheckin.date}
+              </p>
+            </div>
+          </div>
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            Como estás en estado <strong>{NS_CONFIG[lastCheckin.nervous_system]?.label}</strong>, te recomendamos las adaptaciones de entrenamiento para hoy.
+          </p>
+          
+          <Button 
+            onClick={() => setShowSystemFlow(true)} 
+            className="w-full rounded-xl gap-2"
           >
-            <SistemaFlow userEmail={userEmail} />
-          </motion.div>
+            <TrendingUp size={16} /> Ver recomendaciones de entrenamiento
+          </Button>
+        </div>
+      </div>
+    ) : (
+      // ── VISTA 2: Flujo manual o de adaptaciones ──
+      <div className="space-y-4">
+        {showSystemFlow && lastCheckin && (
+          <button 
+            onClick={() => setShowSystemFlow(false)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2"
+          >
+            <ArrowLeft size={14} /> Volver al resumen
+          </button>
         )}
+        
+        <SistemaFlow 
+  userEmail={userEmail} 
+  initialNervousSystem={lastCheckin?.nervous_system} 
+/>
+      </div>
+    )}
+  </motion.div>
+)}
       </AnimatePresence>
     </div>
   );
