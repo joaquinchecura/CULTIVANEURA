@@ -28,15 +28,20 @@ function ShapeSVG({ path, rotation, size = 60 }) {
 function generateRound() {
   const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
   const baseRotation = randomRotation();
-  const correctRotation = randomRotation();
+  
+  // Elegimos cuánto queremos rotar la figura (el ángulo que pediremos)
+  const askedRotation = randomRotation();
+  
+  // La rotación final correcta es la suma
+  const correctFinalRotation = (baseRotation + askedRotation) % 360;
 
-  // Generate 3 wrong options (different rotations)
-  const wrongRotations = ROTATIONS.filter(r => r !== correctRotation);
+  // Generamos opciones incorrectas (que sean rotaciones distintas a la correcta)
+  const wrongRotations = ROTATIONS.filter(r => r !== correctFinalRotation);
   const shuffledWrong = wrongRotations.sort(() => Math.random() - 0.5).slice(0, 3);
 
-  const options = [...shuffledWrong, correctRotation].sort(() => Math.random() - 0.5);
+  const options = [...shuffledWrong, correctFinalRotation].sort(() => Math.random() - 0.5);
 
-  return { shape, baseRotation, correctRotation, options };
+  return { shape, baseRotation, askedRotation, correctFinalRotation, options };
 }
 
 const TOTAL_ROUNDS = 10;
@@ -57,7 +62,7 @@ export default function MentalRotationGame() {
   }, []);
 
   function handleAnswer(rotation) {
-    const isCorrect = rotation === round.correctRotation;
+    const isCorrect = rotation === round.correctFinalRotation;
     if (isCorrect) setScore(s => s + 1);
     setFeedback(isCorrect ? 'correct' : 'wrong');
 
@@ -101,7 +106,8 @@ export default function MentalRotationGame() {
             <ShapeSVG path={round.shape.path} rotation={round.baseRotation} size={80} />
           </div>
 
-          <p className="text-xs text-muted-foreground">¿Cuál es la misma figura rotada {round.correctRotation}°?</p>
+          {/* 👇 Acá mostramos el ángulo que el usuario debe rotar, no la rotación final absoluta */}
+          <p className="text-xs text-muted-foreground">¿Cuál es la misma figura rotada {round.askedRotation}°?</p>
 
           <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
             {round.options.map((rotation, i) => (
@@ -110,9 +116,9 @@ export default function MentalRotationGame() {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => !feedback && handleAnswer(rotation)}
                   className={`h-24 rounded-2xl border-2 flex items-center justify-center transition-all ${
-                    feedback && rotation === round.correctRotation
+                    feedback && rotation === round.correctFinalRotation
                       ? 'border-green-400 bg-green-50 text-green-600'
-                      : feedback && rotation !== round.correctRotation
+                      : feedback && rotation !== round.correctFinalRotation
                         ? 'border-rose-200 bg-rose-50 text-rose-300'
                         : 'border-border bg-card hover:border-purple-300 text-purple-600'
                   }`}
