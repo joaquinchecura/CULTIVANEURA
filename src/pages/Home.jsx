@@ -7,6 +7,7 @@ import { NS_CONFIG } from '@/lib/nervous-system';
 import { LS_KEYS, lsGet } from '@/lib/storage';
 import HomeDrawer from '@/components/HomeDrawer';
 import { useUser } from '@clerk/clerk-react';
+import heroBg from '@/assets/hero.jpg';
 
 function getLastEmotionalCheckin(userEmail) {
   try {
@@ -67,8 +68,16 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className={`px-6 pt-12 pb-8 bg-gradient-to-b ${ns ? ns.gradient : 'from-secondary to-background'}`}>
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+<div className={`relative overflow-hidden px-6 pt-12 pb-8 bg-gradient-to-b ${ns ? ns.gradient : 'from-secondary to-background'}`}>
+  {/* Imagen de fondo */}
+  <img
+    src={heroBg}
+    alt=""
+    className="absolute inset-0 w-full h-full object-cover opacity-[0.07] pointer-events-none"
+  />
+  
+  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
+    {/* ... el resto del contenido del header queda igual ... */}
           <div className="flex items-start justify-between mb-1">
             <div>
               <p className="text-xs text-muted-foreground capitalize tracking-wide">{today}</p>

@@ -4,6 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { NS_CONFIG } from '@/lib/nervous-system';
 
+// Importamos las imágenes
+import reguladoBg from '@/assets/regulado.jpg';
+import activadoBg from '@/assets/activado.jpg';
+import colapsadoBg from '@/assets/colapsado.jpg';
+
+const stateImages = {
+  regulado: reguladoBg,
+  activado: activadoBg,
+  colapsado: colapsadoBg,
+};
+
 const diagnoses = {
   regulado: {
     title: 'Tu sistema nervioso está regulado',
@@ -26,29 +37,22 @@ const diagnoses = {
 };
 
 const EMOTION_LABELS = {
-  ansiedad:     'Ansiedad',
-  calma:        'Calma',
-  frustracion:  'Frustración',
-  apatia:       'Apatía',
-  motivacion:   'Motivación',
+  ansiedad: 'Ansiedad', calma: 'Calma', frustracion: 'Frustración',
+  apatia: 'Apatía', motivacion: 'Motivación',
 };
 const BODY_LABELS = {
-  tension:     'Tensión',
-  energia:     'Energía',
-  respiracion: 'Respiración',
-  digestion:   'Digestión',
+  tension: 'Tensión', energia: 'Energía', respiracion: 'Respiración', digestion: 'Digestión',
 };
 const MIND_LABELS = {
-  clara:     'Clara',
-  dispersa:  'Dispersa',
-  rumiando:  'Rumiando',
-  enfocada:  'Enfocada',
+  clara: 'Clara', dispersa: 'Dispersa', rumiando: 'Rumiando', enfocada: 'Enfocada',
 };
 
 export default function DiagnosisCard({ checkIn }) {
   const config = NS_CONFIG[checkIn.nervous_system];
   const diagnosis = diagnoses[checkIn.nervous_system];
   if (!config || !diagnosis) return null;
+
+  const bgImage = stateImages[checkIn.nervous_system];
 
   const items = [
     { label: 'Emoción', value: EMOTION_LABELS[checkIn.emotion] ?? checkIn.emotion },
@@ -62,18 +66,35 @@ export default function DiagnosisCard({ checkIn }) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-3xl overflow-hidden bg-card border border-border shadow-sm"
     >
-      <div className={`px-6 pt-6 pb-4 ${config.bgSoft}`}>
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={16} className="text-primary" />
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Diagnóstico</span>
+      {/* ── Header con imagen ── */}
+      <div className="relative px-6 pt-6 pb-6 overflow-hidden">
+        {/* Imagen de fondo */}
+        {bgImage && (
+          <img
+            src={bgImage}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-25"
+          />
+        )}
+        {/* Gradiente para legibilidad del texto */}
+        <div className={`absolute inset-0 ${config.bgSoft} mix-blend-overlay`} />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" />
+
+        {/* Contenido (relativo) */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={16} className="text-primary" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Diagnóstico</span>
+          </div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`w-3 h-3 rounded-full ${config.dot}`} />
+            <span className="font-semibold text-sm">{config.label}</span>
+          </div>
+          <h3 className="font-serif text-xl text-foreground">{diagnosis.title}</h3>
         </div>
-        <div className="flex items-center gap-2 mb-1">
-          <div className={`w-3 h-3 rounded-full ${config.dot}`} />
-          <span className="font-semibold text-sm">{config.label}</span>
-        </div>
-        <h3 className="font-serif text-xl text-foreground">{diagnosis.title}</h3>
       </div>
 
+      {/* ── Body ── */}
       <div className="px-6 py-4 space-y-4">
         <p className="text-sm text-muted-foreground leading-relaxed">{diagnosis.body}</p>
 
