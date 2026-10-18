@@ -1,11 +1,12 @@
 ﻿import { Outlet, NavLink } from 'react-router-dom';
-import { Home, Zap, BookOpen, BarChart2, Settings, Gamepad2, User, LogOut, Heart } from 'lucide-react';
+import { Home, Zap, BookOpen, BarChart2, Settings, Gamepad2, User, LogOut, Heart, Wind } from 'lucide-react'; // 👈 Agregamos Wind
 import { cn } from '@/lib/utils';
 import { useClerk, useUser } from '@clerk/clerk-react';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
   { to: '/estado', icon: Zap, label: 'Mi Estado' },
+  { to: '/regular', icon: Wind, label: 'Regular' }, // 👈 NUEVO
   { to: '/rueda-emocional', icon: Heart, label: 'Emociones' },
   { to: '/aprender', icon: BookOpen, label: 'Aprender' },
   { to: '/juegos', icon: Gamepad2, label: 'Juegos' },
@@ -15,9 +16,10 @@ const navItems = [
 const bottomNavItems = [
   { to: '/', icon: Home, label: 'Inicio' },
   { to: '/estado', icon: Zap, label: 'Estado' },
+  { to: '/regular', icon: Wind, label: 'Regular' }, // 👈 NUEVO
   { to: '/rueda-emocional', icon: Heart, label: 'Emociones' },
   { to: '/juegos', icon: Gamepad2, label: 'Juegos' },
-  { to: '/progreso', icon: BarChart2, label: 'Progreso' },
+  // Sacamos "Progreso" del mobile para que no queden 7 ítems apretados
 ];
 
 export default function Layout() {
