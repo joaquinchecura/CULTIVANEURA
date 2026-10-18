@@ -73,7 +73,8 @@ export default function Home() {
   <img
     src={heroBg}
     alt=""
-    className="absolute inset-0 w-full h-full object-cover opacity-[0.07] pointer-events-none"
+    className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+    /* 👆 Subimos de 0.07 a 30 */
   />
   
   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">

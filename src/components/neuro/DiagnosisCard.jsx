@@ -66,19 +66,20 @@ export default function DiagnosisCard({ checkIn }) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-3xl overflow-hidden bg-card border border-border shadow-sm"
     >
-      {/* ── Header con imagen ── */}
-      <div className="relative px-6 pt-6 pb-6 overflow-hidden">
+            {/* ── Header con imagen ── */}
+            <div className="relative px-6 pt-6 pb-6 overflow-hidden">
         {/* Imagen de fondo */}
         {bgImage && (
           <img
             src={bgImage}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-25"
+            className="absolute inset-0 w-full h-full object-cover opacity-60" 
+            /* 👆 Subimos la opacidad a 60% */
           />
         )}
-        {/* Gradiente para legibilidad del texto */}
-        <div className={`absolute inset-0 ${config.bgSoft} mix-blend-overlay`} />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" />
+        {/* Capa de color sutil para que el texto resalte */}
+        <div className={`absolute inset-0 ${config.bgSoft} opacity-70`} />
+        {/* 👆 Capa de color para el texto (sin mix-blend-overlay) */}
 
         {/* Contenido (relativo) */}
         <div className="relative z-10">
