@@ -12,21 +12,6 @@ import { LS_KEYS, lsGet, lsFilter } from '@/lib/storage'; // Usamos el storage u
 
 const LS_EMOCIONAL_KEY = 'neura_emotional_checkins'; // rueda emocional
 
-// ─── localStorage helpers ─────────────────────────────────────────────────────
-
-function lsGet(key) {
-  try { return JSON.parse(localStorage.getItem(key) || '[]'); }
-  catch { return []; }
-}
-
-function lsFilter(key, filterObj = {}, limitN = 200) {
-  let all = lsGet(key);
-  Object.entries(filterObj).forEach(([k, v]) => {
-    all = all.filter(item => item[k] === v);
-  });
-  all.sort((a, b) => new Date(b.created_date || b.created_at) - new Date(a.created_date || a.created_at));
-  return all.slice(0, limitN);
-}
 // ─── Colors ──────────────────────────────────────────────────────────────────
 
 const nsColors = {
