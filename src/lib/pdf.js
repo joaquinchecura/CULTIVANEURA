@@ -91,7 +91,7 @@ function drawDonutChart(doc, data, cx, cy, radius, colors) {
 }
 
 // Gráfico de Barras para Emociones
-function drawBarChart(doc, data, x, y, width, height, color) {
+function drawBarChart(doc, data, x, y, width, height, colors) {
   const max = Math.max(...data.map(d => d.value), 1);
   const barWidth = (width / data.length) - 5;
 
@@ -99,11 +99,11 @@ function drawBarChart(doc, data, x, y, width, height, color) {
     const barHeight = (item.value / max) * height;
     const bx = x + i * (barWidth + 5);
     const by = y + height - barHeight;
-
-    doc.setFillColor(...color);
+    const barColor = colors[i % colors.length];
+    doc.setFillColor(...barColor); // 👈 Usa un color distinto por barra
     doc.roundedRect(bx, by, barWidth, barHeight, 2, 2, 'F');
 
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
     doc.text(String(item.value), bx + barWidth / 2, by - 2, { align: 'center' });
     
@@ -170,6 +170,8 @@ export function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
   y += 36;
 
   // ─── Distribución de estados ──────────────────────────────────────────────
+  const counts = { regulado: 0, activado: 0, colapsado: 0 };
+ 
   if (weekCheckins.length > 0) {
     doc.setFont('times', 'bold');
     doc.setFontSize(13);
@@ -177,7 +179,7 @@ export function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
     doc.text('Distribución de estados', M, y);
     y += 7;
 
-    const counts = { regulado: 0, activado: 0, colapsado: 0 };
+    
     weekCheckins.forEach(c => {
       if (counts[c.nervous_system] !== undefined) counts[c.nervous_system]++;
     });
@@ -263,14 +265,21 @@ export function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
     const emotionData = Object.entries(emotionCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
-      .map(([name, count]) => ({ label: name.slice(0, 4), value: count }));
+      .map(([name, count]) => ({ label: name, value: count }));
 
     if (emotionData.length > 0) {
       doc.setFont('times', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(...C.primaryDk);
       doc.text('Top Emociones', M + 90, y + 10);
-      drawBarChart(doc, emotionData, M + 90, y + 20, 80, 30, [107, 203, 119]);
+      const emotionColors = [
+        [107, 203, 119], // Verde
+        [233, 196, 106], // Amarillo
+        [224, 122, 95],  // Rojo suave
+        [77, 150, 255],  // Azul suave (opcional)
+        [180, 107, 255], // Violeta (opcional)
+      ];
+      drawBarChart(doc, emotionData, M + 90, y + 20, 80, 30, emotionColors);
     }
 
     y += 55;
@@ -279,6 +288,7 @@ export function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
   // ─── Detalle diario ───────────────────────────────────────────────────────
   if (y > 230) { doc.addPage(); y = 20; }
   
+  y += 10; // 👈 Agregamos 10mm de espacio extra antes de la línea
   doc.setDrawColor(...C.border);
   doc.line(M, y, W - M, y);
   y += 6;

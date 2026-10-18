@@ -2,6 +2,8 @@
 import { Home, Zap, BookOpen, BarChart2, Settings, Gamepad2, User, LogOut, Heart, Wind } from 'lucide-react'; // 👈 Agregamos Wind
 import { cn } from '@/lib/utils';
 import { useClerk, useUser } from '@clerk/clerk-react';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/lib/use-theme';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
@@ -28,6 +30,7 @@ export default function Layout() {
   const isAdmin = user?.publicMetadata?.role === 'admin';
   const fullName = user?.fullName || user?.firstName || '';
   const email = user?.primaryEmailAddress?.emailAddress || '';
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -76,6 +79,16 @@ export default function Layout() {
             </NavLink>
           )}
         </nav>
+
+        <div className="px-3 py-2 border-t border-border">
+  <button
+    onClick={toggleTheme}
+    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground w-full transition-all"
+  >
+    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+    {isDark ? 'Modo claro' : 'Modo oscuro'}
+  </button>
+</div>
 
         <div className="px-3 py-4 border-t border-border">
          <button onClick={() => signOut({ redirectUrl: '/login' })}
