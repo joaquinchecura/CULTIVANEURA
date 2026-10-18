@@ -87,7 +87,7 @@ export default function Layout() {
 
       {/* MAIN CONTENT */}
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
-        <main className="flex-1 pb-24 md:pb-8 overflow-y-auto">
+        <main className="flex-1 pb-32 md:pb-8 overflow-y-auto">
           <div className="max-w-2xl mx-auto md:max-w-3xl lg:max-w-4xl">
             <Outlet />
           </div>

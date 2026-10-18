@@ -12,7 +12,7 @@ import Progreso                from './pages/Progreso'
 import Juegos                  from './pages/Juegos'
 import RuedaEmocional          from './pages/RuedaEmocional'
 import RuedaEmocionalDashboard from './pages/RuedaEmocionalDashboard'
-import FloatingContact         from './components/FloatingContact'
+
 
 const LoginPage = () => (
   <>
@@ -56,7 +56,6 @@ function App() {
             </SignedOut>
             <SignedIn>
               <ProtectedRoutes />
-              <FloatingContact />
             </SignedIn>
           </>
         } />
