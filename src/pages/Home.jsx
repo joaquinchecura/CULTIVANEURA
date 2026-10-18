@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, ArrowRight, TrendingUp, BookOpen, Heart } from 'lucide-react';
+import { Zap, ArrowRight, TrendingUp, BookOpen, Heart, ShieldCheck, AlertCircle, BatteryLow, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NS_CONFIG } from '@/lib/nervous-system';
 import { LS_KEYS, lsGet } from '@/lib/storage';
@@ -16,6 +16,13 @@ function getLastEmotionalCheckin(userEmail) {
     return checkins[0] || null;
   } catch { return null; }
 }
+
+// Mapeo de íconos según el estado
+const stateIcons = {
+  regulado: ShieldCheck,
+  activado: AlertCircle,
+  colapsado: BatteryLow,
+};
 
 export default function Home() {
   const { user: clerkUser } = useUser();
@@ -51,6 +58,12 @@ export default function Home() {
   const ns = lastCheckIn ? NS_CONFIG[lastCheckIn.nervous_system] : null;
   const today = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 
+  // Lógica para el ícono de estado
+  const StateIcon = lastCheckIn ? stateIcons[lastCheckIn.nervous_system] || ShieldCheck : ShieldCheck;
+  const stateColorClass = lastCheckIn?.nervous_system === 'regulado' ? 'bg-emerald-100 text-emerald-700' :
+                          lastCheckIn?.nervous_system === 'activado' ? 'bg-amber-100 text-amber-700' :
+                          'bg-rose-100 text-rose-700';
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -79,8 +92,10 @@ export default function Home() {
               <span className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Estado actual</span>
               <Link to="/estado" className="text-xs text-primary font-medium">Actualizar →</Link>
             </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full ${ns.dot}`} />
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stateColorClass}`}>
+                <StateIcon size={20} strokeWidth={2.5} />
+              </div>
               <div>
                 <p className="font-semibold text-foreground">{ns.label}</p>
                 <p className="text-xs text-muted-foreground">{ns.desc}</p>
@@ -102,11 +117,12 @@ export default function Home() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.08 } }}>
           <Link to="/rueda-emocional"
             className="flex items-center gap-4 bg-card border border-border rounded-3xl p-5 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ background: lastEmotional ? `${lastEmotional.emotion_color}22` : '#F4C43022' }}>
-              <span style={{ fontSize: '24px' }}>
-                {lastEmotional ? lastEmotional.emotion_emoji : '🎡'}
-              </span>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-primary/10">
+              {lastEmotional ? (
+                <span className="text-xl">{lastEmotional.emotion_emoji}</span>
+              ) : (
+                <Smile size={22} className="text-primary" strokeWidth={2} />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">Rueda Emocional</p>
