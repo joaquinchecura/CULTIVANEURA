@@ -1,20 +1,22 @@
-// src/lib/pdf.js
 import { jsPDF } from 'jspdf';
 import { format, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { NS_CONFIG } from '@/lib/nervous-system';
 import { safeParseDate } from '@/lib/storage';
 
-// ─── Paleta NEURA (alineada con tailwind: --primary, --bark, --sand) ──────────
+// ─── Paleta NEURA ─────────────────────────────────────────────────────────────
 const C = {
-  primaryDk: [41, 78, 54],     // verde oscuro NEURA
-  primary:   [59, 107, 75],    // verde principal
-  sand:      [244, 236, 220],  // beige
-  bark:      [92, 72, 52],     // marrón
-  light:     [248, 246, 242],  // fondo cards
+  primaryDk: [41, 78, 54],     
+  primary:   [59, 107, 75],    
+  sand:      [244, 236, 220],  
+  bark:      [92, 72, 52],     
+  light:     [248, 246, 242],  
   border:    [220, 212, 198],
   gray:      [120, 120, 120],
   white:     [255, 255, 255],
+  regulado:  [107, 203, 119],
+  activado:  [233, 196, 106],
+  colapsado: [224, 122, 95],
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -53,6 +55,60 @@ function drawBar(doc, x, y, w, h, pct, color) {
     doc.setFillColor(...color);
     doc.roundedRect(x, y, fillW, h, h / 2, h / 2, 'F');
   }
+}
+
+// Gráfico de Torta (Donut) para Estados
+function drawDonutChart(doc, data, cx, cy, radius, colors) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  if (total === 0) return;
+
+  let startAngle = -Math.PI / 2;
+
+  data.forEach((item, index) => {
+    if (item.value === 0) return;
+    const sliceAngle = (item.value / total) * Math.PI * 2;
+    const endAngle = startAngle + sliceAngle;
+
+    doc.setFillColor(...colors[index % colors.length]);
+    
+    const steps = 20;
+    const points = [[cx, cy]];
+    for (let i = 0; i <= steps; i++) {
+      const angle = startAngle + (i / steps) * sliceAngle;
+      points.push([cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius]);
+    }
+    
+    doc.lines(
+      points.slice(1).map((p, i) => [p[0] - points[i][0], p[1] - points[i][1]]),
+      points[0][0], points[0][1], [1, 1], 'F'
+    );
+
+    startAngle = endAngle;
+  });
+
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy, radius * 0.5, 'F');
+}
+
+// Gráfico de Barras para Emociones
+function drawBarChart(doc, data, x, y, width, height, color) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  const barWidth = (width / data.length) - 5;
+
+  data.forEach((item, i) => {
+    const barHeight = (item.value / max) * height;
+    const bx = x + i * (barWidth + 5);
+    const by = y + height - barHeight;
+
+    doc.setFillColor(...color);
+    doc.roundedRect(bx, by, barWidth, barHeight, 2, 2, 'F');
+
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(String(item.value), bx + barWidth / 2, by - 2, { align: 'center' });
+    
+    doc.text(item.label, bx + barWidth / 2, y + height + 6, { align: 'center' });
+  });
 }
 
 // ─── Generador principal ──────────────────────────────────────────────────────
@@ -136,7 +192,7 @@ export function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
       doc.setTextColor(...C.primaryDk);
       doc.text(cfg.label, M, y + 4);
 
-      drawBar(doc, M + 32, y, barMaxW, 5, pct, C.primary);
+      drawBar(doc, M + 32, y, barMaxW, 5, pct, C[key] || C.primary);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
@@ -174,7 +230,55 @@ export function generarPDFSemanal(checkins, sistemaCheckins, userEmail) {
     y += 10;
   }
 
+  // ─── Análisis Visual (Gráficos) ───────────────────────────────────────────
+  if (weekCheckins.length > 0) {
+    if (y > 200) { doc.addPage(); y = 20; }
+    
+    doc.setFont('times', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(...C.primaryDk);
+    doc.text('Análisis Visual', M, y);
+    y += 10;
+
+    // 1. Donut de Estados
+    const stateData = [
+      { label: 'Regulado', value: counts.regulado },
+      { label: 'Activado', value: counts.activado },
+      { label: 'Colapsado', value: counts.colapsado },
+    ];
+    const stateColors = [C.regulado, C.activado, C.colapsado];
+    
+    drawDonutChart(doc, stateData, M + 30, y + 20, 20, stateColors);
+    
+    // Leyenda del Donut
+    doc.setFontSize(8);
+    stateData.forEach((d, i) => {
+      doc.setFillColor(...stateColors[i]);
+      doc.circle(M + 60, y + 10 + i * 8, 2, 'F');
+      doc.setTextColor(...C.gray);
+      doc.text(`${d.label}: ${d.value}`, M + 65, y + 11 + i * 8);
+    });
+
+    // 2. Barras de Emociones
+    const emotionData = Object.entries(emotionCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name, count]) => ({ label: name.slice(0, 4), value: count }));
+
+    if (emotionData.length > 0) {
+      doc.setFont('times', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...C.primaryDk);
+      doc.text('Top Emociones', M + 90, y + 10);
+      drawBarChart(doc, emotionData, M + 90, y + 20, 80, 30, [107, 203, 119]);
+    }
+
+    y += 55;
+  }
+
   // ─── Detalle diario ───────────────────────────────────────────────────────
+  if (y > 230) { doc.addPage(); y = 20; }
+  
   doc.setDrawColor(...C.border);
   doc.line(M, y, W - M, y);
   y += 6;
