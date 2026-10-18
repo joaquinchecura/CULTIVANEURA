@@ -202,54 +202,65 @@ export default function Regular() {
         ))}
       </div>
 
-      {/* Detail modal */}
-      <AnimatePresence>
-        {selected && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center"
-            onClick={() => setSelected(null)}>
-            <motion.div
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-card rounded-t-3xl w-full max-w-lg p-6 pb-10 max-h-[88vh] overflow-y-auto"
-              onClick={e => e.stopPropagation()}>
-
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1 pr-4">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: `${selected.color}20` }}>
-                    <DynamicIcon icon={selected.icon} size={22} style={{ color: selected.color }} />
-                  </div>
-                  <div>
-                    <h2 className="font-serif text-xl text-foreground">{selected.title}</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock size={12} className="text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{selected.duration_minutes} minutos</span>
-                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                        style={{ background: `${selected.color}20`, color: selected.color }}>{selected.tag}</span>
-                    </div>
-                  </div>
+     {/* Detail modal */}
+<AnimatePresence>
+  {selected && (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      // 👇 z-[100] para tapar el menú. bg-black/40 para el fondo oscuro.
+      className="fixed inset-0 bg-black/40 z-[100] flex items-start justify-center pt-12 sm:pt-20 px-4" 
+      onClick={() => setSelected(null)}
+    >
+      <motion.div
+        // 👇 Animación súper sutil: solo un fade-in rápido y un desliz de 10px
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.15 }}
+        // 👇 max-h-[80vh] para que no se estire más allá del menú, rounded-3xl en todos los lados
+        className="bg-card rounded-3xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-6 pb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3 flex-1 pr-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{ background: `${selected.color}20` }}>
+                <selected.icon size={22} style={{ color: selected.color }} />
+              </div>
+              <div>
+                <h2 className="font-serif text-xl text-foreground">{selected.title}</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <Clock size={12} className="text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">{selected.duration_minutes} minutos</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                    style={{ background: `${selected.color}20`, color: selected.color }}>{selected.tag}</span>
                 </div>
-                <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground">
-                  <X size={20} />
-                </button>
               </div>
+            </div>
+            <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground bg-muted p-1.5 rounded-full">
+              <X size={18} />
+            </button>
+          </div>
 
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{selected.description}</p>
+          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{selected.description}</p>
 
-              <div className="bg-muted rounded-2xl p-4 mb-5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Instrucciones</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selected.instructions}</p>
-              </div>
+          <div className="bg-muted rounded-2xl p-4 mb-5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Instrucciones</p>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selected.instructions}</p>
+          </div>
 
-              <Button className="w-full rounded-xl text-white font-semibold" style={{ background: selected.color }}
-                onClick={() => handleComplete(selected.id)}>
-                ✓ Completar técnica
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <Button className="w-full rounded-xl text-white font-semibold py-6" style={{ background: selected.color }}
+            onClick={() => handleComplete(selected.id)}>
+            ✓ Completar técnica
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   );
 }
