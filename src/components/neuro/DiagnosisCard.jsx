@@ -3,15 +3,6 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { NS_CONFIG } from '@/lib/nervous-system';
-import reguladoBg from '@/assets/regulado.jpg';
-import activadoBg from '@/assets/activado.jpg';
-import colapsadoBg from '@/assets/colapsado.jpg';
-
-const stateImages = {
-  regulado: reguladoBg,
-  activado: activadoBg,
-  colapsado: colapsadoBg,
-};
 
 const diagnoses = {
   regulado: {
@@ -106,14 +97,3 @@ export default function DiagnosisCard({ checkIn }) {
     </motion.div>
   );
 }
-
-<div className="relative px-6 pt-6 pb-8 overflow-hidden">
-  <img
-    src={stateImages[checkIn.nervous_system]}
-    className="absolute inset-0 w-full h-full object-cover opacity-20"
-    alt=""
-  />
-  <div className="relative z-10">
-    {/* Título y contenido */}
-  </div>
-</div>
