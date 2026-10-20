@@ -8,6 +8,8 @@ import { LS_KEYS, lsGet } from '@/lib/storage';
 import HomeDrawer from '@/components/HomeDrawer';
 import { useUser } from '@clerk/clerk-react';
 import heroBg from '@/assets/hero.jpg';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/lib/use-theme';
 
 function getLastEmotionalCheckin(userEmail) {
   try {
@@ -31,6 +33,7 @@ export default function Home() {
   const [recentLessons, setRecentLessons] = useState([]);
   const [checkInCount, setCheckInCount] = useState(0);
   const [lastEmotional, setLastEmotional] = useState(null);
+  const { isDark, toggleTheme } = useTheme();
 
   const firstName = clerkUser?.firstName || clerkUser?.fullName?.split(' ')[0] || '';
   const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
@@ -78,19 +81,27 @@ export default function Home() {
   />
   
   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
-    {/* ... el resto del contenido del header queda igual ... */}
-          <div className="flex items-start justify-between mb-1">
-            <div>
-              <p className="text-xs text-muted-foreground capitalize tracking-wide">{today}</p>
-              <h1 className="text-2xl font-serif mt-1 text-foreground">
-                {firstName ? `Hola, ${firstName}` : 'Bienvenido a NEURA'}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Entrená tu sistema nervioso</p>
-            </div>
-            <HomeDrawer />
-          </div>
-        </motion.div>
+    <div className="flex items-start justify-between mb-1">
+      <div>
+        <p className="text-xs text-muted-foreground capitalize tracking-wide">{today}</p>
+        <h1 className="text-2xl font-serif mt-1 text-foreground">
+          {firstName ? `Hola, ${firstName}` : 'Bienvenido a NEURA'}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Entrená tu sistema nervioso</p>
       </div>
+      
+      <div className="flex items-center gap-2">
+        <button 
+          onClick={toggleTheme}
+          className="w-10 h-10 rounded-full bg-card/50 border border-border flex items-center justify-center text-foreground backdrop-blur-sm hover:bg-card transition-colors"
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        <HomeDrawer />
+      </div>
+    </div>
+  </motion.div> {/* 👈 ESTE CIERRE FALTABA */}
+</div>
 
       <div className="px-6 space-y-5 pb-8">
 

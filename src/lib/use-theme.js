@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 
 export function useTheme() {
   const [isDark, setIsDark] = useState(() => {
-    // Busca la preferencia guardada o la del sistema
+    // Si el usuario ya eligió, respetamos su elección
     const saved = localStorage.getItem('neura-theme');
     if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Si no eligió, forzamos modo claro por defecto
+    return false; 
   });
 
   useEffect(() => {
