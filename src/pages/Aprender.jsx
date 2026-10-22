@@ -59,14 +59,14 @@ export default function Aprender() {
       key={tab.value}
       onClick={() => setCategory(tab.value)}
       className={cn(
-        'flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap',
+        'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap',
         category === tab.value
           ? 'bg-primary text-primary-foreground shadow-sm'
           : 'bg-muted text-muted-foreground hover:bg-accent'
       )}
     >
       <Icon size={14} strokeWidth={category === tab.value ? 2.5 : 1.8} />
-      {tab.label}
+      <span>{tab.label}</span>
     </button>
   );
 })}
