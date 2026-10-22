@@ -36,41 +36,51 @@ export default function Aprender() {
   const activeTab = TABS.find(t => t.value === category);
 
   return (
-    <div className="pb-8">
+    <div className="pb-8 pt-10 px-6"> {/* 👈 Agregamos pt-10 y px-6 al contenedor principal */}
+      
+      {/* Header */}
+      <div className="mb-6">
+        <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+          Biblioteca
+        </p>
+        <h1 className="text-2xl font-serif text-foreground mt-0.5">Aprender</h1>
+        <p className="text-sm text-muted-foreground mt-1">Neurociencia aplicada a tu vida</p>
+      </div>
 
-{lessonId && (
-  <div className="mx-6 mt-6 mb-2 p-5 rounded-3xl bg-primary/10 border border-primary/20 flex items-start gap-4">
-    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-      <BookOpen size={20} className="text-primary" />
-    </div>
-    <div>
-      <p className="text-sm font-semibold text-foreground">Lección abierta desde tu progreso</p>
-      <p className="text-xs text-muted-foreground mt-1">ID: {lessonId}. (El contenido detallado se está cargando...)</p>
-    </div>
-  </div>
-)}
+      {/* Banner de lección seleccionada */}
+      {lessonId && (
+        <div className="mb-6 p-5 rounded-3xl bg-primary/10 border border-primary/20 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <BookOpen size={20} className="text-primary" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Lección abierta desde tu progreso</p>
+            <p className="text-xs text-muted-foreground mt-1">ID: {lessonId}. (El contenido detallado se está cargando...)</p>
+          </div>
+        </div>
+      )}
 
-{/* Tab bar */}
-<div className="flex flex-wrap gap-2 px-6 mb-4">
-  {TABS.map(tab => {
-    const Icon = tab.icon;
-    return (
-      <button
-        key={tab.value}
-        onClick={() => setCategory(tab.value)}
-        className={cn(
-          'flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all',
-          category === tab.value
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'bg-card border border-border text-muted-foreground hover:bg-muted'
-        )}
-      >
-        <Icon size={16} strokeWidth={category === tab.value ? 2.5 : 2} />
-        {tab.label}
-      </button>
-    );
-  })}
-</div>
+      {/* Tab bar — ahora con flex-wrap y un margen inferior para que respire */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {TABS.map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setCategory(tab.value)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all',
+                category === tab.value
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'bg-card border border-border text-muted-foreground hover:bg-muted'
+              )}
+            >
+              <Icon size={16} strokeWidth={category === tab.value ? 2.5 : 2} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Content */}
       <AnimatePresence mode="wait">
