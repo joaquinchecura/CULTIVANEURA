@@ -202,7 +202,6 @@ export default function Regular() {
         ))}
       </div>
 
-     {/* Detail modal */}
 {/* Detail modal */}
 <AnimatePresence>
   {selected && (
@@ -211,16 +210,13 @@ export default function Regular() {
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4 sm:p-6" 
-      onClick={() => setSelected(null)} // 👈 ESTO ES CLAVE para que se cierre al tocar afuera
+      onClick={() => setSelected(null)}
     >
-        // ...
       <motion.div
-        // 👇 Animación súper sutil: solo un fade-in rápido y un desliz de 10px
         initial={{ opacity: 0, y: -10 }} 
         animate={{ opacity: 1, y: 0 }} 
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.15 }}
-        // 👇 max-h-[80vh] para que no se estire más allá del menú, rounded-3xl en todos los lados
         className="bg-card rounded-3xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl"
         onClick={e => e.stopPropagation()}
       >

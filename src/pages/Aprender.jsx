@@ -50,27 +50,27 @@ export default function Aprender() {
   </div>
 )}
 
-      {/* Tab bar */}
-      <div className="flex gap-2 overflow-x-auto pb-2 px-6 mb-2 no-scrollbar">
-      {TABS.map(tab => {
-  const Icon = tab.icon;
-  return (
-    <button
-      key={tab.value}
-      onClick={() => setCategory(tab.value)}
-      className={cn(
-        'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap',
-        category === tab.value
-          ? 'bg-primary text-primary-foreground shadow-sm'
-          : 'bg-muted text-muted-foreground hover:bg-accent'
-      )}
-    >
-      <Icon size={14} strokeWidth={category === tab.value ? 2.5 : 1.8} />
-      <span>{tab.label}</span>
-    </button>
-  );
-})}
-      </div>
+{/* Tab bar */}
+<div className="flex flex-wrap gap-2 px-6 mb-4">
+  {TABS.map(tab => {
+    const Icon = tab.icon;
+    return (
+      <button
+        key={tab.value}
+        onClick={() => setCategory(tab.value)}
+        className={cn(
+          'flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all',
+          category === tab.value
+            ? 'bg-primary text-primary-foreground shadow-md'
+            : 'bg-card border border-border text-muted-foreground hover:bg-muted'
+        )}
+      >
+        <Icon size={16} strokeWidth={category === tab.value ? 2.5 : 2} />
+        {tab.label}
+      </button>
+    );
+  })}
+</div>
 
       {/* Content */}
       <AnimatePresence mode="wait">
