@@ -36,7 +36,7 @@ export default function Aprender() {
   const activeTab = TABS.find(t => t.value === category);
 
   return (
-    <div className="pb-8 pt-10 px-6"> {/* 👈 Agregamos pt-10 y px-6 al contenedor principal */}
+    <div className="pb-8 pt-8 px-6 md:px-8"> {/* 👈 pt-8 para que no toque el techo */}
       
       {/* Header */}
       <div className="mb-6">
@@ -60,7 +60,7 @@ export default function Aprender() {
         </div>
       )}
 
-      {/* Tab bar — ahora con flex-wrap y un margen inferior para que respire */}
+      {/* Tab bar — con flex-wrap para que bajen y no se corten */}
       <div className="flex flex-wrap gap-2 mb-6">
         {TABS.map(tab => {
           const Icon = tab.icon;
